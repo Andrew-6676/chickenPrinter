@@ -1,0 +1,10 @@
+colorama
+et-xmlfile
+falcon
+gunicorn
+jdcal
+openpyxl
+pyserial
+six
+structlog
+waitress
