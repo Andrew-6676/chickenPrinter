@@ -13,7 +13,7 @@ from colorama import Style, Fore
 
 import logging
 
-from app import Production
+from app import Production, User
 from config import Config
 from report import Report
 
@@ -56,7 +56,6 @@ def create_app(q, config):
 	# report = Reporter(database, q, config)
 
 
-	app.add_static_route('/', os.path.abspath('static'))
 
 	# app.add_route('/report/', report)
 	# app.add_route('/report/{action}', report)
@@ -65,10 +64,16 @@ def create_app(q, config):
 	app.add_route('/api/production', production)
 	app.add_route('/api/production/{id}', production)
 
+	user = User(db_connection, q, config)
+	app.add_route('/api/users', user)
+	app.add_route('/api/users/{id}', user)
+
 	from app import Index
 	index = Index(q, config)
 	app.add_route('/', index)
-	app.add_route('/{action}', index)
+	# app.add_route('/{action}', index)
+
+	app.add_static_route('/', os.path.abspath('static'))
 
 	return app
 

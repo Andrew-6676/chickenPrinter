@@ -13,7 +13,7 @@ def log(req, resp, resource, params):
 def set_json(req, resp, resource, params):
 	resp.content_type = 'application/json'
 #--------------------------------------------------------------------------------------------------#
-
+@falcon.before(log)
 class Index():
 	def __init__(self, q=None, config=None):
 		self.qqq=q
@@ -23,21 +23,9 @@ class Index():
 		# resp.body = filename
 		if not action:
 			resp.content_type = 'text/html'
-			with open('./static/index.html', 'rb') as f:
+			with open('./static/index.html', 'r') as f:
+				print('index')
 				resp.body = f.read()
-		# if action=='setPartNumber':
-		# 	self.qqq.setPartNumber(req.params.get('number', -1))
-		# 	resp.body = json.dumps({'message': 'num changed'})
-		# if action=='startNewPart':
-		# 	self.qqq.startNewPart(req.params.get('number', -1), req.params.get('date', '0000-00-00'))
-		# 	self.qqq.loadFromDb()
-		#
-		# 	resp.body = json.dumps({'message': 'part started'})
-		# if action == 'getPortsState':
-		# 	resp.body = json.dumps({
-		# 		'scales': self.qqq.getScalesState(),
-		# 		'controller': self.qqq.getControllerState()
-		# 	})
 
 #--------------------------------------------------------------------------------------------------#
 @falcon.before(log)
@@ -46,6 +34,7 @@ class Production():
 	def __init__(self, db_connection, q=None, config=None):
 		self.qqq=q
 		self.config = config
+		self.conn = db_connection
 		self.cursor = db_connection.cursor()
 
 	def on_get(self, req, resp, id=None):
@@ -60,6 +49,66 @@ class Production():
 
 
 		resp.body = json.dumps(data)
+#--------------------------------------------------------------------------------------------------#
+@falcon.before(log)
+@falcon.before(set_json)
+class User():
+	def __init__(self, db_connection, q=None, config=None):
+		self.qqq=q
+		self.config = config
+		self.conn = db_connection
+		self.cursor = db_connection.cursor()
+
+	def on_get(self, req, resp, id=None):
+		if id:
+			sql = """select * from user where id={} and not deleted""".format(id)
+			self.cursor.execute(sql)
+			data = self.cursor.fetchone()
+		else:
+			sql = """select * from user where not deleted"""
+			self.cursor.execute(sql)
+			data = self.cursor.fetchall()
+
+
+		resp.body = json.dumps(data)
+
+	def on_post(self, req, resp):
+		user = json.load(req.stream)
+		print('post ', user)
+		sql = f"insert into user (name, pass) values('{user['name']}', '{user['pass']}')"
+		try:
+			self.cursor.execute(sql)
+			self.conn.commit()
+			resp.body = json.dumps({'status': 'ok'})
+		except Exception as e:
+			self.conn.rollback()
+			print(e)
+			resp.body = json.dumps({'status': 'error'})
+
+	def on_put(self, req, resp, id=None):
+		user = json.load(req.stream)
+		print('put ', id, user)
+		sql = f"update user set name='{user['name']}', pass='{user['pass']}' where id={id}"
+		try:
+			self.cursor.execute(sql)
+			self.conn.commit()
+			resp.body = json.dumps({'status': 'ok'})
+		except Exception as e:
+			self.conn.rollback()
+			print(e)
+			resp.body = json.dumps({'status': 'error'})
+
+	def on_delete(self, req, resp, id=None):
+		print('del ', id)
+		sql = f'delete from user where id={id}'
+		try:
+			self.cursor.execute(sql)
+			self.conn.commit()
+			resp.body = json.dumps({'status': 'ok'})
+		except Exception as e:
+			self.conn.rollback()
+			print(e)
+			resp.body = json.dumps({'status': 'error'})
 
 #--------------------------------------------------------------------------------------------------#
 
