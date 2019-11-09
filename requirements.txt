@@ -12,7 +12,7 @@ comtypes
 openpyxl
 Pillow
 pypiwin32
-python
 pywin32
 treepoem
 win32printing
+websockets

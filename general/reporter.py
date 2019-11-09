@@ -1,13 +1,11 @@
 import sqlite3
 import os
 import time
-from colorama import Fore, Back, Style, init
-init()
+from colorama import Fore, Back, Style
 
-###############################################################
 
-""" Выгрузка данных осуществляется в Excel в формате "Дата" и "Количество груза итого за сутки". """
-class Report:
+
+class Reporter:
 	def __init__(self, database, config):
 		print(Back.GREEN+'Открытие базы данных...'+Style.RESET_ALL)
 		self.database = database
