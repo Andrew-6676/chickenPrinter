@@ -1,6 +1,12 @@
 import logging
 import sqlite3
 
+import win32com
+import win32com.client
+
+from comtypes import CoInitializeEx
+
+LOGGER = logging.getLogger('app')
 
 class DataClass(object):
 	part_number = 0
@@ -11,9 +17,18 @@ class DataClass(object):
 	controller_state = False
 	pause = False
 	config = None
+	excel = None
+
 
 	def setConfig(self, cfg):
 		self.config = cfg
+		CoInitializeEx()
+		self.excel = win32com.client.Dispatch("Excel.Application")
+		self.excel.Visible = False
+		LOGGER.info('Excel started')
+
+	def getExcel(self):
+		return self.excel
 
 	def setPause(self, p):
 		self.pause = p

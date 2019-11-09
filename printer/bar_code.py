@@ -43,7 +43,7 @@ def generateBarCode_tree(type, data):
 	}
 	image = treepoem.generate_barcode(
 		barcode_type=type,
-		data=data,
+		data=str(data),
 		options = options[type]
 	)
 	size = image.width/2, image.width/2

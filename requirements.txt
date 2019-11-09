@@ -13,6 +13,7 @@ openpyxl
 Pillow
 pypiwin32
 pywin32
+python-barcode
 treepoem
 win32printing
 websockets

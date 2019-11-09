@@ -1,17 +1,19 @@
 import os
 import subprocess
-import time
 import re
 import winsound
 
 import openpyxl
+import win32com
+import win32com.client
+from comtypes import CoInitializeEx
+
 from openpyxl.utils.cell import get_column_letter
 import win32print
-import win32com.client
 
-from bar_code import insertBarCode
-
+from printer.bar_code import insertBarCode
 # ----------------------------------------------------------------------------------------------- #
+
 def beep():
 	frequency = 2500  # Set Frequency To 2500 Hertz
 	duration = 100  # Set Duration To 1000 ms == 1 second
@@ -25,9 +27,10 @@ def xlsx_to_pdf(src_file):
 	:param src_file: путь к конвертируемому файлу
 	:return: путь к получившемуся pdf-файлу
 	"""
-	current_work_dir = os.getcwd()
+	CoInitializeEx()
 	excel = win32com.client.Dispatch("Excel.Application")
 	excel.Visible = False
+	current_work_dir = os.getcwd() + '/printer'
 	wb_path = src_file
 	wb = excel.Workbooks.Open(wb_path)
 
@@ -50,7 +53,7 @@ def genereate_file_to_print(template_file, data):
 	:param data: данные для вставки в шаблон
 	:return:
 	"""
-	current_work_dir = os.getcwd()
+	current_work_dir = os.getcwd() + '/printer'
 
 	wb = openpyxl.load_workbook(template_file)
 	sheet = wb.active
@@ -64,9 +67,8 @@ def genereate_file_to_print(template_file, data):
 			if cell != 'None':
 				newCell = cell
 				for v in data:
-					newCell = re.sub(r'\{\{' + v + '\}\}', data[v], newCell)
+					newCell = re.sub(r'\{\{' + v + '\}\}', str(data[v]), newCell)
 				sheet[get_column_letter(i + 1) + str(k + 1)] = newCell
-				# print(cell, '-', newCell)
 
 				# ищем штрихкод
 				bar_res = re.findall(r'\{\{(.+)=(ean13|code128)\}\}', newCell)
@@ -77,7 +79,7 @@ def genereate_file_to_print(template_file, data):
 					# print('-->', get_column_letter(i + 1) + str(k + 1), code_type, code_data)
 					insertBarCode(sheet, get_column_letter(i + 1) + str(k + 1), code_type, code_data)
 
-	wb.save('./tmp/print.xlsx')
+	wb.save(current_work_dir + '/tmp/print.xlsx')
 
 	return current_work_dir + '/tmp/print.xlsx'
 # ----------------------------------------------------------------------------------------------- #
@@ -106,24 +108,3 @@ def print_file(pdf_file_name):
 	       '-sOutputFile="%printer%{}" '.format(printer_name)
 	ghostscript = args + f'"{pdf_file_name}"'
 	subprocess.call(ghostscript, shell=True)
-# ----------------------------------------------------------------------------------------------- #
-
-data = {
-	'energy': '<ENERGY>',
-	'name': '<NAME>',
-	'barcode1': '2150000000017',
-	'barcode2': '2210735005000511192'
-}
-
-t = time.time()
-
-x = genereate_file_to_print('./templates/template.xlsx', data)
-print(time.time() - t)
-t = time.time()
-p = xlsx_to_pdf(x)
-print(time.time() - t)
-t = time.time()
-print_file(p)
-print(time.time() - t)
-beep()
-print('---------------')

@@ -7,6 +7,7 @@ from colorama import Style, Fore
 
 from general.reporter import Reporter
 
+LOGGER = logging.getLogger('app')
 
 def scales_reader(obj, config=None):
 	if config:
@@ -25,14 +26,14 @@ def scales_reader(obj, config=None):
 	def connect(port):
 		connect = None
 		while not connect or not connect.is_open:
-			print(Fore.RED + 'Не удалось открыть порт ' + port + Style.RESET_ALL, end='. ')
-			print('Повтор через 5 секунд...')
-			time.sleep(50)
 			try:
 				connect = serial.Serial(port, 9600, timeout=2)
 			except Exception as exc:
-				logging.error(str(exc))
-				print('Error during opening port: ', str(exc))
+				LOGGER.error(str(exc))
+			print(Fore.RED + 'Не удалось открыть порт ' + port + Style.RESET_ALL, end='. ')
+			print('Повтор через 5 секунд...')
+			time.sleep(50)
+
 		print(Fore.GREEN + '{} connected'.format(port) + Style.RESET_ALL)
 		return connect
 
@@ -52,7 +53,7 @@ def scales_reader(obj, config=None):
 			print(Fore.BLACK + Style.BRIGHT + 'Вес: {} = {}'.format(data, val) + Style.RESET_ALL)
 			return val
 		except Exception as exc:
-			logging.error(str(exc))
+			LOGGER.error(str(exc))
 			print('Error read weight: ', str(exc))
 			return -1
 
@@ -77,16 +78,16 @@ def scales_reader(obj, config=None):
 
 				save_to_db(weight, 0)
 				if weight < config.minWeight:
-					logging.warning(u'small weight: {}'.format(weight))
+					LOGGER.warning(u'small weight: {}'.format(weight))
 					obj.addRowErr(
 						{'time': time.strftime('%Y-%m-%d %H:%M:%S'), 'weight': weight, 'part': obj.getPartNumber()})
 				else:
-					logging.info(u'get weight: {}'.format(weight))
+					LOGGER.info(u'get weight: {}'.format(weight))
 					obj.addRow(
 						{'time': time.strftime('%Y-%m-%d %H:%M:%S'), 'weight': weight, 'part': obj.getPartNumber()})
 
 				if weight < 0:
-					logging.error(u'bad weight: {}. reconnect scales'.format(weight))
+					LOGGER.error(u'bad weight: {}. reconnect scales'.format(weight))
 					obj.setScalesState(False)
 					ser_scales.close()
 					ser_scales = connect(scales_port)

@@ -1,12 +1,23 @@
+import logging
 import os
 import sqlite3
+import traceback
 
 import falcon
 
-from resources import Production, User, Index
+from resources import Production, User, Index, Printer
 
+LOGGER = logging.getLogger('app')
+# ------------------------------------------------------------------------------------------------ #
 
-def create_app(q, config):
+def error_handler(req, resp, ex, params):
+	trace = traceback.format_exc()
+	LOGGER.error(f'{req.method}:{req.path}. {type(ex).__name__} - {ex}\n{trace}')
+	# print(trace)
+	raise ex
+# ------------------------------------------------------------------------------------------------ #
+
+def create_app(shared_obj, config):
 	database = './report.db'
 
 	def dict_factory(cursor, row):
@@ -19,16 +30,20 @@ def create_app(q, config):
 	db_connection.row_factory = dict_factory
 
 	app = falcon.API()
+	app.add_error_handler(Exception, error_handler)
 
-	production = Production(db_connection, q, config)
+	production = Production(db_connection, shared_obj, config)
 	app.add_route('/api/production', production)
 	app.add_route('/api/production/{id}', production)
 
-	user = User(db_connection, q, config)
+	user = User(db_connection, shared_obj, config)
 	app.add_route('/api/users', user)
 	app.add_route('/api/users/{id}', user)
 
-	index = Index(q, config)
+	printer = Printer(db_connection, shared_obj, config)
+	app.add_route('/api/print/{action}', printer)
+
+	index = Index(shared_obj, config)
 	app.add_route('/', index)
 
 	app.add_static_route('/', os.path.abspath('static'))
