@@ -38,7 +38,8 @@ def generateBarCode_tree(type, data):
 			'textsize': 10,
 			'textgaps': 2,
 			'height': 0.3,
-			'includecheck': True
+			# 'includecheck': True,
+			'includecheckintext': True
 		}
 	}
 	image = treepoem.generate_barcode(

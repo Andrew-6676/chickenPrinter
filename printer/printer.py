@@ -89,7 +89,6 @@ def print_file(pdf_file_name):
 	:param pdf_file_name:
 	:return:
 	"""
-	print('---> pdf', pdf_file_name)
 	# GHOSTSCRIPT_PATH = "w:\\#### D\Work\\# python\\tsc_sample\\gsprint\\gsprint.exe"
 	# GSPRINT_PATH = "C:\\Program Files (x86)\\gs\\gs9.50\\bin\\gswin32.exe"
 	#

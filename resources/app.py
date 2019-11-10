@@ -42,9 +42,11 @@ def create_app(shared_obj, config):
 
 	printer = Printer(db_connection, shared_obj, config)
 	app.add_route('/api/print/{action}', printer)
+	app.add_route('/api/print/{action}/{subaction}', printer)
 
-	index = Index(shared_obj, config)
+	index = Index(db_connection, shared_obj, config)
 	app.add_route('/', index)
+	app.add_route('/api/{action}', index)
 
 	app.add_static_route('/', os.path.abspath('static'))
 

@@ -16,6 +16,16 @@ class Printer():
 		self.conn = db_connection
 		self.cursor = db_connection.cursor()
 
+	def on_get(self, req, resp, action=None, subaction=None):
+		if action == 'templates' and not subaction:
+			sql = 'select * from templates'
+			self.cursor.execute(sql)
+			data = self.cursor.fetchall()
+			resp.body = json.dumps(data)
+			return
+
+		raise falcon.HTTPNotFound(title=f'{req.method}:{action}/{subaction} - not found')
+
 	def on_post(self, req, resp, action=None):
 		frequency, duration = 4500, 70
 		winsound.Beep(frequency, duration)
@@ -29,17 +39,18 @@ class Printer():
 		data['date3'] = params.get('date3')
 		data['user'] = params.get('user')
 		data['ean_13'] = data['bar_code']
-		data['code_128'] = '3310735005000511192'
+		data['code_128'] = params['code128']
 
 		t = time.time()
 
-		x = genereate_file_to_print('./printer/templates/template_1.xlsx', data)
+		template = params.get("template", 0)
+		x = genereate_file_to_print(f'./printer/templates/template_{template}.xlsx', data)
 		print(time.time() - t)
 		t = time.time()
 		p = xlsx_to_pdf(x)
 		print(time.time() - t)
 		t = time.time()
-		print_file(p)
+		# print_file(p)
 		print(time.time() - t)
 		frequency = 2500  # Set Frequency To 2500 Hertz
 		duration = 100  # Set Duration To 1000 ms == 1 second

@@ -16,9 +16,14 @@ class Production():
 
 	def on_get(self, req, resp, id=None):
 		if id:
-			sql = """select * from production where id={} and deleted=0""".format(id)
-			self.cursor.execute(sql)
-			data = self.cursor.fetchone()
+			if id == 'new':
+				sql = 'select max(id)+1 as id from production'
+				self.cursor.execute(sql)
+				data = self.cursor.fetchone()
+			else:
+				sql = """select * from production where id={} and deleted=0""".format(id)
+				self.cursor.execute(sql)
+				data = self.cursor.fetchone()
 		else:
 			sql = """select * from production where not deleted"""
 			self.cursor.execute(sql)
@@ -32,11 +37,11 @@ class Production():
 		sql = "insert into production " \
 		      "(group_name, name, descr, ingridients, storage_conditions, " \
 		      "nutritional_value, energy_value, RC_BY, TU_BY, STB, " \
-		      "expiration_date, bar_code) " \
+		      "expiration_date, bar_code, code128_prefix) " \
 		      "values" \
 		      f"('{prod['group_name']}', '{prod['name']}', '{prod['descr']}', '{prod['ingridients']}', '{prod['storage_conditions']}', " \
 		      f"'{prod['nutritional_value']}', '{prod['energy_value']}', '{prod['RC_BY']}', '{prod['TU_BY']}', '{prod['STB']}', " \
-		      f"'{prod['expiration_date']}', '{prod['bar_code']}')"
+		      f"'{prod['expiration_date']}', '{prod['bar_code']}', '{prod['code128_prefix']}')"
 		try:
 			self.cursor.execute(sql)
 			self.conn.commit()
@@ -62,7 +67,9 @@ class Production():
 		      f"TU_BY='{prod['TU_BY']}', " \
 		      f"STB='{prod['STB']}', " \
 		      f"expiration_date='{prod['expiration_date']}', " \
-		      f"bar_code='{prod['bar_code']}' where id={id}"
+		      f"bar_code='{prod['bar_code']}' " \
+		      f"bar_code='{prod['code128_prefix']}' " \
+		      f"where id={id}"
 		try:
 			self.cursor.execute(sql)
 			self.conn.commit()
