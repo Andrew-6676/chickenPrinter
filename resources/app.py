@@ -17,17 +17,17 @@ def error_handler(req, resp, ex, params):
 	raise ex
 # ------------------------------------------------------------------------------------------------ #
 
-def create_app(shared_obj, config):
-	database = './report.db'
+def create_app(shared_obj, config, db_connection):
+	database = config.report.database
 
-	def dict_factory(cursor, row):
-		d = {}
-		for idx, col in enumerate(cursor.description):
-			d[col[0]] = row[idx]
-		return d
-
-	db_connection = sqlite3.connect(database, check_same_thread=False)
-	db_connection.row_factory = dict_factory
+	# def dict_factory(cursor, row):
+	# 	d = {}
+	# 	for idx, col in enumerate(cursor.description):
+	# 		d[col[0]] = row[idx]
+	# 	return d
+	#
+	# db_connection = sqlite3.connect(database, check_same_thread=False)
+	# db_connection.row_factory = dict_factory
 
 	app = falcon.API()
 	app.add_error_handler(Exception, error_handler)
