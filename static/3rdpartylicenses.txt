@@ -97,7 +97,11 @@ THE SOFTWARE.
 
 @angular/material/dialog
 
+@angular/material/divider
+
 @angular/material/form-field
+
+@angular/material/list
 
 @angular/material/select
 

@@ -241,6 +241,10 @@ async def http_server(db_connection, shared_obj, config):
 		web.get('/api/{action}', index.get)
 	])
 
+	app.add_routes([
+		web.static('/', './static')
+	])
+
 	runner = web.AppRunner(app)
 	await runner.setup()
 	site = web.TCPSite(runner, 'localhost', 8080)
