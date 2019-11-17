@@ -44,11 +44,11 @@ class Reporter:
 	# 								`total_part` INTEGER)
 	# 							""")
 			   
-	def log_weighing(self, data={'id_user':0, 'id_product':0, 'weight':0, 'id_party':0, 'tare':0}):
+	def log_weighing(self, data={'id_user':0, 'id_product':0, 'weight':0, 'party':0, 'tare':0}):
 		data['date'] = datetime.datetime.now().replace(microsecond=0).isoformat().replace('T', ' ')
 		self.cursor.execute(
-			"INSERT INTO `log` (`date`, `id_user`, `id_product`, `weight`, `tare`, `id_party`) "
-			"VALUES (:date, :id_user, :id_product, :weight, :tare, :id_party)", data)
+			"INSERT INTO `log` (`date`, `id_user`, `id_product`, `weight`, `tare`, party) "
+			"VALUES (:date, :id_user, :id_product, :weight, :tare, :party)", data)
 		self.db_connection.commit()
 
 

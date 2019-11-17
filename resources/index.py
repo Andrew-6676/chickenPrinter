@@ -1,30 +1,28 @@
 import json
 
-import falcon
+from aiohttp import web
 
-from resources.common import log
 
-@falcon.before(log)
-class Index():
+class Index:
 	def __init__(self, db_connection, shared_data_obj=None, config=None):
 		self.shared_data_obj = shared_data_obj
 		self.config = config
 		self.conn = db_connection
 		self.cursor = db_connection.cursor()
 
-	def on_get(self, req, resp, action=None):
-		# resp.body = filename
+	async def get(self, request):
+		action = request.match_info.get('action', None)
 		if not action:
-			resp.content_type = 'text/html'
 			with open('./static/index.html', 'r') as f:
 				print('index')
-				resp.body = f.read()
+				return web.Response(body=f.read(), content_type='text/html')
 
 		if action == 'params':
 			sql = 'select * from params'
 			self.cursor.execute(sql)
 			data = self.cursor.fetchall()
-			resp.body = json.dumps(data)
-			return
+			return web.Response(text=json.dumps(data))
 
-		raise falcon.HTTPNotFound(title=f'{req.method}:{action} - not found')
+		if action == 'ping':
+			return web.Response(text='{"pong":"ok"}')
+		#raise falcon.HTTPNotFound(title=f'{req.method}:{action} - not found')

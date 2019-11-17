@@ -1,20 +1,17 @@
 import json
 
-import falcon
-
-from resources.common import log, set_json
+from aiohttp import web
 
 
-@falcon.before(log)
-@falcon.before(set_json)
-class Production():
+class Production:
 	def __init__(self, db_connection, q=None, config=None):
 		self.qqq=q
 		self.config = config
 		self.conn = db_connection
 		self.cursor = db_connection.cursor()
 
-	def on_get(self, req, resp, id=None):
+	async def get(self, request):
+		id = request.match_info.get('id', None)
 		if id:
 			if id == 'new':
 				sql = 'select max(id)+1 as id from production'
@@ -29,10 +26,10 @@ class Production():
 			self.cursor.execute(sql)
 			data = self.cursor.fetchall()
 
-		resp.body = json.dumps(data)
+		return web.Response(text=json.dumps(data))
 
-	def on_post(self, req, resp):
-		prod = json.load(req.stream)
+	async def post(self, request):
+		prod = json.loads(await request.text())
 		print('post ', prod)
 		sql = "insert into production " \
 		      "(group_name, name, descr, ingridients, storage_conditions, " \
@@ -45,14 +42,15 @@ class Production():
 		try:
 			self.cursor.execute(sql)
 			self.conn.commit()
-			resp.body = json.dumps({'status': 'ok'})
+			return web.Response(text=json.dumps({'status': 'ok'}))
 		except Exception as e:
 			self.conn.rollback()
 			print(e)
-			resp.body = json.dumps({'status': 'error'})
+			return web.Response(text=json.dumps({'status': 'error'}))
 
-	def on_put(self, req, resp, id=None):
-		prod = json.load(req.stream)
+	async def put(self, request):
+		prod = json.loads(await request.text())
+		id = request.match_info.get('id', None)
 		print('put ', prod)
 		sql = "update production " \
 			  "set " \
@@ -73,20 +71,21 @@ class Production():
 		try:
 			self.cursor.execute(sql)
 			self.conn.commit()
-			resp.body = json.dumps({'status': 'ok'})
+			return web.Response(text=json.dumps({'status': 'ok'}))
 		except Exception as e:
 			self.conn.rollback()
-			print(e)
-			resp.body = json.dumps({'status': 'error'})
+			print(e, "\n", sql)
+			return web.Response(text=json.dumps({'status': 'error'}))
 
-	def on_delete(self, req, resp, id=None):
+	async def delete(self, request):
+		id = request.match_info.get('id', None)
 		print('delete prod', id)
 		sql = f"update production set deleted=1 where id={id}"
 		try:
 			self.cursor.execute(sql)
 			self.conn.commit()
-			resp.body = json.dumps({'status': 'ok'})
+			return web.Response(text=json.dumps({'status': 'ok'}))
 		except Exception as e:
 			self.conn.rollback()
 			print(e)
-			resp.body = json.dumps({'status': 'error'})
+			return web.Response(text=json.dumps({'status': 'error'}))

@@ -14,12 +14,20 @@ from printer.printer import genereate_file_to_print, xlsx_to_pdf
 LOGGER = logging.getLogger('app')
 
 class DataClass(object):
+	ws = None
 	scales_state = False
 	pause = False
 	config = None
 	excel = None
 
 	printData = None
+	tareMode = False
+
+	def __init__(self):
+		print('**************** shared_data_obj INIT **********************')
+
+	def hello(self):
+		return 'hello'
 
 	def setConfig(self, cfg):
 		self.config = cfg
@@ -44,6 +52,11 @@ class DataClass(object):
 	def getExcel(self):
 		return self.excel
 
+	def setWsClient(self, ws):
+		self.ws = ws
+	def getWsClient(self):
+		return self.ws
+
 	def setPause(self, p):
 		self.pause = p
 
@@ -54,17 +67,27 @@ class DataClass(object):
 		return self.scales_state
 
 	def setPrintData(self, data):
-		self.printData = data
+		if data and data.get('clear', None):
+			self.printData = None
+		else:
+			self.printData = data
+
+
+	def setTareMode(self, mode):
+		self.tareMode = mode
 
 	def print(self, weight):
+		if self.tareMode:
+			LOGGER.error('Режим считывания тары')
+			self.tareMode = False
+			winsound.Beep(500, 300)
+			return
 		if not self.printData:
 			LOGGER.error('Нет данных для печати')
-			winsound.Beep(1500, 100)
-			winsound.Beep(1500, 100)
-			winsound.Beep(1000, 200)
+			winsound.Beep(500, 150)
+			winsound.Beep(500, 150)
 			return 1
 
-		winsound.Beep(4500, 70)
 		winsound.Beep(4500, 70)
 		winsound.Beep(4500, 70)
 		winsound.Beep(3500, 200)
@@ -98,60 +121,9 @@ class DataClass(object):
 			'id_user': self.printData.get('user_id'),
 			'id_product': data['id'],
 			'weight': weight,
-			'id_party': 0,
+			'party': self.printData.get('date1'),
 			'tare': self.printData.get('tare')
 		}
 		self.reporter.log_weighing(log_data)
 
 		winsound.Beep(2500, 100)
-
-	# def startNewPart(self, n, d):
-	# 	logging.info(u'start new part: {}, {}'.format(n, d))
-	# 	self.rows = []
-	# 	self.rows_err = []
-	# 	self.setPartNumber(n)
-	# 	self.setPartDate(d)
-	# 	with open('curr_part.info', 'w') as file:
-	# 		file.write(str(n)+','+str(d))
-	#
-	# def setPartNumber(self, n):
-	# 	self.part_number = n
-	#
-	# def setPartDate(self, d):
-	# 	self.part_date = d
-	#
-	# def getPartNumber(self):
-	# 	return self.part_number
-	#
-	# def getPartDate(self):
-	# 	return self.part_date
-	#
-	# def addRow(self, x):
-	# 	self.rows.append(x)
-	#
-	# def addRowErr(self, x):
-	# 	self.rows_err.append(x)
-	#
-	# def getRows(self):
-	# 	return self.rows
-	#
-	# def getRowsErr(self):
-	# 	return self.rows_err
-	#
-	# def loadFromDb(self):
-	# 	database = './report.db'
-	# 	conn = sqlite3.connect(database, check_same_thread=False)
-	# 	cursor = conn.cursor()
-	# 	sql = """select `date`, `time`, weight
-	# 			 from raw_data
-	# 			 where `date`='{}' and part={} and weight>{}""".format(self.part_date,
-    #                                                                    self.part_number,
-    #                                                                    self.config.minWeight)
-	# 	cursor.execute(sql)
-	# 	data = cursor.fetchall()
-	# 	conn.close()
-	# 	if data and len(data):
-	# 		print('load current part from DB')
-	# 		logging.info('load current part from DB')
-	# 	for r in data:
-	# 		self.addRow({'time': r[0] + ' ' + r[1], 'weight': r[2], 'part': self.part_number})

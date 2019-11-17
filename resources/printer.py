@@ -1,14 +1,11 @@
 import json
-import os
 import time
 import winsound
 
-import falcon
+from aiohttp import web
 
-from printer.printer import genereate_file_to_print, xlsx_to_pdf, print_file
-from resources.common import log
+from printer.printer import genereate_file_to_print, xlsx_to_pdf
 
-@falcon.before(log)
 class Printer():
 	def __init__(self, db_connection, shared_data_obj=None, config=None):
 		self.shared_data_obj = shared_data_obj
@@ -16,36 +13,41 @@ class Printer():
 		self.conn = db_connection
 		self.cursor = db_connection.cursor()
 
-	def on_get(self, req, resp, action=None, subaction=None):
+	async def get(self, request):
+		action = request.match_info.get('action', None)
+		subaction = request.match_info.get('subaction', None)
 		if action == 'templates' and not subaction:
 			sql = 'select * from templates'
 			self.cursor.execute(sql)
 			data = self.cursor.fetchall()
-			resp.body = json.dumps(data)
-			return
+			return web.Response(text=json.dumps(data))
 
-		raise falcon.HTTPNotFound(title=f'{req.method}:{action}/{subaction} - not found')
+	async def post(self, request):
+		action = request.match_info.get('action', None)
+		subaction = request.match_info.get('subaction', None)
+		params = json.loads(await request.text())
 
-	def on_post(self, req, resp, action=None, subaction=None):
-		params = json.load(req.stream)
-
-		if action=='label' and subaction==None:
+		if (action=='label' or action == 'total') and subaction==None:
 			frequency, duration = 4500, 70
 			winsound.Beep(frequency, duration)
 			sql = """select * from production where id={} and deleted=0""".format(params['id'])
 			self.cursor.execute(sql)
 			data = self.cursor.fetchone()
-			data['weight'] = params.get('weight')
+			data['weight'] = params.get('weight') if action == 'label' else params.get('totalWeight')
 			data['date1'] = params.get('date1')
 			data['date2'] = params.get('date2')
 			data['date3'] = params.get('date3')
 			data['user'] = params.get('user')
+			data['code_128'] = params.get('code128')
+			data['packs'] = params.get('packs')
 			data['ean_13'] = data['bar_code']
-			data['code_128'] = params['code128']
 
 			t = time.time()
 
-			template = params.get("template", 0)
+			template = str(params.get("template", 0))
+			if action == 'total':
+				template += '_total'
+
 			x = genereate_file_to_print(f'./printer/templates/template_{template}.xlsx', data)
 			print(time.time() - t)
 			t = time.time()
@@ -58,7 +60,8 @@ class Printer():
 			duration = 100  # Set Duration To 1000 ms == 1 second
 			winsound.Beep(frequency, duration)
 
-			resp.body = json.dumps('ok')
+			return web.Response(text=json.dumps({'status': 'ok'}))
 
 		if action=='prepare' and subaction==None:
 			self.shared_data_obj.setPrintData(params)
+			return web.Response(text=json.dumps({'status': 'ok'}))
