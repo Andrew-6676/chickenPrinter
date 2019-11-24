@@ -1,5 +1,5 @@
-echo Timeuot before running scales server. Please wait 30 seconds
-ping localhost -n 30 
+echo Timeuot before running scales server. Please wait 5 seconds
+ping localhost -n 5 
 echo Start scales server... 
 
 python serve.py
