@@ -1,3 +1,4 @@
+import os
 import time
 from io import BytesIO
 import barcode
@@ -52,8 +53,22 @@ def generateBarCode_tree(type, data):
 	# image.convert('1').save('barcode.png')
 	return image
 # ----------------------------------------------------------------------------------------------- #
+def generateBarCode_node(type, data):
+	if type=='ean13':
+		command = f'bwip-js --bcid={type} --text={data} --includetext=true  --scaleY=1 --scale=2 --height=10 --width=25 --textyoffset=-5  code1.png'
+		os.system(command)
+		image = PILImage.open('code1.png')
+		return image
+	if type == 'code128':
+		command = f'bwip-js --bcid={type} --text={data} --includetext=true --textgaps=1 --includetext=true  --scaleY=1 --scale=2 --height=10 --width=25 code2.png'
+		os.system(command)
+		image = PILImage.open('code2.png')
+		return image
+
+# ----------------------------------------------------------------------------------------------- #
 def insertBarCode(sheet, anchor, code_type, code_data):
-	im = generateBarCode_tree(code_type, code_data)
+	im = generateBarCode_node(code_type, code_data)
 	img = openpyxl.drawing.image.Image(im)
 	img.anchor = anchor
 	sheet.add_image(img)
+

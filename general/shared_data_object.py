@@ -9,7 +9,7 @@ import win32com.client
 from comtypes import CoInitializeEx
 
 from general.reporter import Reporter
-from printer.printer import genereate_file_to_print, xlsx_to_pdf
+from printer.printer import genereate_file_to_print, xlsx_to_pdf, print_file
 
 LOGGER = logging.getLogger('app')
 
@@ -105,17 +105,19 @@ class DataClass(object):
 		data['ean_13'] = data['bar_code']
 		data['code_128'] = code128
 
+		t0 = time.time()
 		t = time.time()
 
 		template = self.printData.get("template", 0)
 		x = genereate_file_to_print(f'./printer/templates/template_{template}.xlsx', data)
-		print(time.time() - t)
+		print('xls', time.time() - t)
 		t = time.time()
 		p = xlsx_to_pdf(x)
-		print(time.time() - t)
+		print('pdf', time.time() - t)
 		t = time.time()
-		# print_file(p)
-		print(time.time() - t)
+		print_file(p)
+		print('print', time.time() - t)
+		print('total time', time.time() - t0)
 
 		log_data = {
 			'id_user': self.printData.get('user_id'),

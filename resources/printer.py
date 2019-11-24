@@ -4,7 +4,8 @@ import winsound
 
 from aiohttp import web
 
-from printer.printer import genereate_file_to_print, xlsx_to_pdf
+from printer.printer import genereate_file_to_print, xlsx_to_pdf, print_file
+
 
 class Printer():
 	def __init__(self, db_connection, shared_data_obj=None, config=None):
@@ -42,6 +43,7 @@ class Printer():
 			data['packs'] = params.get('packs')
 			data['ean_13'] = data['bar_code']
 
+			t0 = time.time()
 			t = time.time()
 
 			template = str(params.get("template", 0))
@@ -49,13 +51,14 @@ class Printer():
 				template += '_total'
 
 			x = genereate_file_to_print(f'./printer/templates/template_{template}.xlsx', data)
-			print(time.time() - t)
+			print('generate xls', time.time() - t)
 			t = time.time()
 			p = xlsx_to_pdf(x)
-			print(time.time() - t)
+			print('generate pdf', time.time() - t)
 			t = time.time()
-			# print_file(p)
-			print(time.time() - t)
+			print_file(p)
+			print('print file', time.time() - t)
+			print('total', time.time() - t0)
 			frequency = 2500  # Set Frequency To 2500 Hertz
 			duration = 100  # Set Duration To 1000 ms == 1 second
 			winsound.Beep(frequency, duration)

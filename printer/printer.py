@@ -4,13 +4,14 @@ import re
 import winsound
 
 import openpyxl
-import win32com
-import win32com.client
+# import win32com
+# import win32com.client
 from comtypes import CoInitializeEx
 
 from openpyxl.utils.cell import get_column_letter
 import win32print
 
+from general.xls import EXCEL
 from printer.bar_code import insertBarCode
 # ----------------------------------------------------------------------------------------------- #
 
@@ -28,11 +29,11 @@ def xlsx_to_pdf(src_file):
 	:return: путь к получившемуся pdf-файлу
 	"""
 	CoInitializeEx()
-	excel = win32com.client.Dispatch("Excel.Application")
-	excel.Visible = False
+	# excel = win32com.client.Dispatch("Excel.Application")
+	# excel.Visible = False
 	current_work_dir = os.getcwd() + '/printer'
 	wb_path = src_file
-	wb = excel.Workbooks.Open(wb_path)
+	wb = EXCEL.Workbooks.Open(wb_path)
 
 	ws_index_list = [1]  # say you want to print these sheets
 
@@ -73,7 +74,7 @@ def genereate_file_to_print(template_file, data):
 				# ищем штрихкод
 				bar_res = re.findall(r'\{\{(.+)=(ean13|code128)\}\}', newCell)
 				if bar_res:
-					sheet[get_column_letter(i + 1) + str(k + 1)] = '<code>'
+					sheet[get_column_letter(i + 1) + str(k + 1)] = ''
 					code_data, code_type = bar_res[0]
 					code_data = data[code_data]
 					# print('-->', get_column_letter(i + 1) + str(k + 1), code_type, code_data)
