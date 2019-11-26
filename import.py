@@ -1,7 +1,8 @@
 import csv
-import sqlite3
 
-conn = sqlite3.connect('report.db', check_same_thread=False)
+import fdb
+
+conn = fdb.connect(dsn='localhost:d:\DATABASE.FDB', user='sysdba', password='masterkey')
 cursor = conn.cursor()
 with open('nomenk.csv', newline='') as csvfile:
     spamreader = csv.reader(csvfile, delimiter=';',  quotechar='\'')

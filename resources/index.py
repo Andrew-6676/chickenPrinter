@@ -2,6 +2,8 @@ import json
 
 from aiohttp import web
 
+from general.fetchData import fetchDataAll
+
 
 class Index:
 	def __init__(self, db_connection, shared_data_obj=None, config=None):
@@ -18,9 +20,9 @@ class Index:
 				return web.Response(body=f.read(), content_type='text/html')
 
 		if action == 'params':
-			sql = 'select * from params'
+			sql = 'select * from "PARAMS"'
 			self.cursor.execute(sql)
-			data = self.cursor.fetchall()
+			data = fetchDataAll(self.cursor)
 			return web.Response(text=json.dumps(data))
 
 		if action == 'ping':

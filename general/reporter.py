@@ -1,9 +1,10 @@
 import datetime
-import sqlite3
+import logging
 import os
 import time
 from colorama import Fore, Back, Style
 
+LOGGER = logging.getLogger('app')
 
 class Reporter:
 	def __init__(self, db_connection, config):
@@ -46,10 +47,20 @@ class Reporter:
 			   
 	def log_weighing(self, data={'id_user':0, 'id_product':0, 'weight':0, 'party':0, 'tare':0}):
 		data['date'] = datetime.datetime.now().replace(microsecond=0).isoformat().replace('T', ' ')
-		self.cursor.execute(
-			"INSERT INTO `log` (`date`, `id_user`, `id_product`, `weight`, `tare`, party) "
-			"VALUES (:date, :id_user, :id_product, :weight, :tare, :party)", data)
-		self.db_connection.commit()
+		sql = 'INSERT INTO "LOG" ("date", "id_user", "id_product", "weight", "tare", "party") ' \
+			'VALUES (' \
+				f"'{data['date']}', " \
+				f"'{data['id_user']}', " \
+				f"'{data['id_product']}', " \
+				f"'{data['weight']}', " \
+				f"'{data['tare']}', " \
+				f"'{data['party']}'" \
+			")"
+		try:
+			self.cursor.execute(sql)
+			self.db_connection.commit()
+		except Exception as ex:
+			LOGGER.error(str(ex) + '; SQL = ' + sql)
 
 
 	# def getStat(self):

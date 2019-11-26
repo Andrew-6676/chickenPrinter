@@ -1,6 +1,7 @@
 import logging
-import sqlite3
+
 import time
+import traceback
 import winsound
 
 import win32com
@@ -8,6 +9,7 @@ import win32com.client
 
 from comtypes import CoInitializeEx
 
+from general.fetchData import fetchDataOne
 from general.reporter import Reporter
 from printer.printer import genereate_file_to_print, xlsx_to_pdf, print_file
 
@@ -29,22 +31,22 @@ class DataClass(object):
 	def hello(self):
 		return 'hello'
 
-	def setConfig(self, cfg):
+	def setConfig(self, cfg, db_connection):
 		self.config = cfg
-		CoInitializeEx()
-		self.excel = win32com.client.Dispatch("Excel.Application")
-		self.excel.Visible = False
-		LOGGER.info('Excel started')
+		# CoInitializeEx()
+		# self.excel = win32com.client.Dispatch("Excel.Application")
+		# self.excel.Visible = False
+		# LOGGER.info('Excel started')
 
-		def dict_factory(cursor, row):
-			d = {}
-			for idx, col in enumerate(cursor.description):
-				d[col[0]] = row[idx]
-			return d
-
-		database = cfg.report.database
-		db_connection = sqlite3.connect(database, check_same_thread=False)
-		db_connection.row_factory = dict_factory
+		# def dict_factory(cursor, row):
+		# 	d = {}
+		# 	for idx, col in enumerate(cursor.description):
+		# 		d[col[0]] = row[idx]
+		# 	return d
+		#
+		# database = cfg.report.database
+		# db_connection = sqlite3.connect(database, check_same_thread=False)
+		# db_connection.row_factory = dict_factory
 
 		self.cursor = db_connection.cursor()
 		self.reporter = Reporter(db_connection, cfg)
@@ -94,9 +96,9 @@ class DataClass(object):
 
 		code128 = self.printData['code128'].replace('-----', str(weight).replace('.','').zfill(5))
 
-		sql = """select * from production where id={} and deleted=0""".format(self.printData['id'])
+		sql = """select * from "PRODUCTION" where "id"={} and "deleted"=0""".format(self.printData['id'])
 		self.cursor.execute(sql)
-		data = self.cursor.fetchone()
+		data = fetchDataOne(self.cursor)
 		data['weight'] = weight
 		data['date1'] = self.printData.get('date1')
 		data['date2'] = self.printData.get('date2')
@@ -109,23 +111,29 @@ class DataClass(object):
 		t = time.time()
 
 		template = self.printData.get("template", 0)
-		x = genereate_file_to_print(f'./printer/templates/template_{template}.xlsx', data)
-		print('xls', time.time() - t)
-		t = time.time()
-		p = xlsx_to_pdf(x)
-		print('pdf', time.time() - t)
-		t = time.time()
-		print_file(p)
-		print('print', time.time() - t)
-		print('total time', time.time() - t0)
+		try:
+			x = genereate_file_to_print(f'./printer/templates/template_{template}.xlsx', data)
+			print('xls', time.time() - t)
+			t = time.time()
+			p = xlsx_to_pdf(x)
+			print('pdf', time.time() - t)
+			t = time.time()
+			print_file(p)
+			print('print', time.time() - t)
+			tt = round(time.time() - t0, 3)
+			print('total time', tt)
 
-		log_data = {
-			'id_user': self.printData.get('user_id'),
-			'id_product': data['id'],
-			'weight': weight,
-			'party': self.printData.get('date1'),
-			'tare': self.printData.get('tare')
-		}
-		self.reporter.log_weighing(log_data)
+			log_data = {
+				'id_user': self.printData.get('user_id'),
+				'id_product': data['id'],
+				'weight': weight,
+				'party': self.printData.get('date1'),
+				'tare': self.printData.get('tare')
+			}
+			self.reporter.log_weighing(log_data)
 
-		winsound.Beep(2500, 100)
+			winsound.Beep(2500, 100)
+			LOGGER.info(f'Printing: time={tt}c, template={template}')
+		except Exception as ex:
+			LOGGER.error('Printing error: ' + str(ex))
+			traceback.print_exc()

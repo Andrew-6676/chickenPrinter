@@ -1,7 +1,9 @@
 import json
 import sys
+import traceback
 import winsound
 
+import fdb
 from aiohttp import web
 import atexit
 import logging.config
@@ -15,7 +17,6 @@ import asyncio
 import functools
 import logging
 import re
-import sqlite3
 import time
 
 import serial
@@ -42,21 +43,19 @@ LOGGER.info(u'START PROGRAMM')
 cfg = Config('./config.ini').getConfig()
 
 
-def dict_factory(cursor, row):
-	d = {}
-	for idx, col in enumerate(cursor.description):
-		d[col[0]] = row[idx]
-	return d
+
 
 
 print('Открытие базы данных...')
 database = cfg.report.database
-db_connection = sqlite3.connect(database, check_same_thread=False)
-db_connection.row_factory = dict_factory
+# db_connection = sqlite3.connect(database, check_same_thread=False)
+# db_connection.row_factory = dict_factory
+
+db_connection = fdb.connect(dsn=database, user='sysdba', password='masterkey')
 
 # расшареный между процесами объект с данными
 shared_data_obj = DataClass()
-shared_data_obj.setConfig(cfg)
+shared_data_obj.setConfig(cfg, db_connection)
 
 atexit.register(exit_handler)
 
@@ -74,31 +73,13 @@ async def notify_state():
 async def sendWSMessage(event, data):
 	if WS:  # asyncio.wait doesn't accept an empty list
 		message = json.dumps({'event': event, 'data': json.dumps(data)})
-		LOGGER.info(f'[ws ----->] {data}')
+		LOGGER.debug(f'[ws ----->] {data}')
 		await asyncio.wait([client.send(message) for client in WS])
 
 
 async def register(websocket):
 	WS.add(websocket)
 	await notify_state()
-
-
-##############################################################################
-
-def connect_db(cfg):
-	def dict_factory(cursor, row):
-		d = {}
-		for idx, col in enumerate(cursor.description):
-			d[col[0]] = row[idx]
-		return d
-
-	print('Открытие базы данных...')
-	database = cfg.report.database
-	db_connection = sqlite3.connect(database, check_same_thread=False)
-	db_connection.row_factory = dict_factory
-
-	return db_connection
-
 
 ##############################################################################
 
@@ -111,7 +92,7 @@ async def websocket_handler(websocket, path, shared_data_obj=None):
 		message = await websocket.recv()
 		try:
 			data = json.loads(message.replace('\\', ''))
-			LOGGER.info('[ws <-----] {}'.format(data['event']))
+			LOGGER.debug('[ws <-----] {}'.format(data['event']))
 			if data['event'] == 'get-status':
 				await sendWSMessage('scales',
 				                    {'connected': True, 'message': 'Подключено к порту COM3'})
@@ -197,12 +178,11 @@ async def scales_reader(shared_data_obj, config=None):
 						await sendWSMessage('weight', curr_weight)
 						await sendWSMessage('messages', f'Вес слишком мал: {curr_weight}')
 			except Exception as ex:
-				LOGGER.error(f'Ошибка чтения веса: {data}')
-				print(ex)
+				LOGGER.error(f'Ошибка чтения веса: {data}: ' + str(ex))
+				traceback.print_exc()
 		else:
-			pass
-		# await sendWSMessage('messages', f'error read weight {data}')
-		# LOGGER.error(f'Ошибка чтения веса: {data}')
+			await asyncio.sleep(0.01)
+
 
 
 ####################################################################################
@@ -253,13 +233,13 @@ async def http_server(db_connection, shared_obj, config):
 
 ####################################################################################
 
-db = connect_db(cfg)
+# db = connect_db(cfg)
 
 ioloop = asyncio.get_event_loop()
 tasks = [
 	ioloop.create_task(scales_reader(shared_data_obj, cfg)),
 	start_ws_server,
-	http_server(db, shared_data_obj, cfg),
+	http_server(db_connection, shared_data_obj, cfg),
 ]
 wait_tasks = asyncio.wait(tasks)
 
