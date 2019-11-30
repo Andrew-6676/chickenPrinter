@@ -140,7 +140,7 @@ async def scales_reader(shared_data_obj, config=None):
 				LOGGER.error(str(exc))
 				print(Fore.RED + 'Не удалось открыть порт ' + port + Style.RESET_ALL, end='. ')
 				print('Повтор через 5 секунд...')
-				time.sleep(5)
+				await asyncio.sleep(5)
 
 		print(Fore.GREEN + '{} connected'.format(port) + Style.RESET_ALL)
 		return connect
