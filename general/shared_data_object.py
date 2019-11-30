@@ -76,6 +76,7 @@ class DataClass(object):
 
 
 	def setTareMode(self, mode):
+		LOGGER.debug(f'Set tare mode = {mode}')
 		self.tareMode = mode
 
 	def print(self, weight):

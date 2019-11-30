@@ -2,6 +2,8 @@ import json
 import logging
 
 from aiohttp import web
+from openpyxl import Workbook
+from openpyxl.writer.excel import save_virtual_workbook
 
 from general.fetchData import fetchDataAll, fetchDataOne
 
@@ -16,7 +18,7 @@ class Production:
 
 	async def get(self, request):
 		id = request.match_info.get('id', None)
-		if id:
+		if id and id != 'excel':
 			if id == 'new':
 				sql = 'select max("id")+1 as "id" from "PRODUCTION"'
 				self.cursor.execute(sql)
@@ -29,9 +31,21 @@ class Production:
 			sql = 'select * from "PRODUCTION" where "deleted"=0 order by "name"'
 			self.cursor.execute(sql)
 			data = fetchDataAll(self.cursor)
+			if id == 'excel':
+				LOGGER.info('Print production list')
+				wb = Workbook()
+				ws = wb.active
+				for row in data:
+					ws.append(list(row.values()))
+				response = save_virtual_workbook(wb)
+				return web.Response(
+					body = response,
+					content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+					headers={'Content-Disposition': 'attachment; filename="prod.xlsx"'}
+				)
 
 		try:
-			return web.Response(text=json.dumps(data))
+			return web.Response(text=json.dumps(data),)
 		except Exception as ex:
 			LOGGER.error(str(ex) + '; SQL = ' + sql)
 

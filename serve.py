@@ -23,13 +23,13 @@ import serial
 import websockets
 from colorama import Fore, Style, Back
 
-from resources import User, Production, Index, Printer
+from resources import User, Production, Index, Printer, setup_middlewares
 
 colorama.init()
 
 logging.config.fileConfig('logger.conf')
 LOGGER = logging.getLogger('app')
-LOGGER.handlers[0].doRollover()
+# LOGGER.handlers[0].doRollover()
 
 
 def exit_handler():
@@ -94,10 +94,13 @@ async def websocket_handler(websocket, path, shared_data_obj=None):
 			data = json.loads(message.replace('\\', ''))
 			LOGGER.debug('[ws <-----] {}'.format(data['event']))
 			if data['event'] == 'get-status':
-				await sendWSMessage('scales',
-				                    {'connected': True, 'message': 'Подключено к порту COM3'})
+				scst = shared_data_obj.getScalesState()
+				await sendWSMessage('scales', {
+					'connected': scst,
+					'message': 'связь установлена' if scst else 'связь потеряна'
+				})
 			if data['event'] == 'get-tare':
-				shared_data_obj.setTareMode(True)
+				shared_data_obj.setTareMode(data['data'])
 		except Exception as ex:
 			print(ex)
 			data = message
@@ -171,7 +174,9 @@ async def scales_reader(shared_data_obj, config=None):
 					if curr_weight > float(config.scales.minweight):
 						# сообщаем в браузер о факте взвешивания
 						await sendWSMessage('weight', curr_weight)
+						await sendWSMessage('print', 'start')
 						shared_data_obj.print(curr_weight)
+						await sendWSMessage('print', 'end')
 					else:
 						winsound.Beep(300, 700)
 						LOGGER.error(f'Вес слишком мал: {curr_weight}')
@@ -208,7 +213,7 @@ async def http_server(db_connection, shared_obj, config):
 		web.delete('/api/production/{id}', production.delete),
 	])
 
-	printer = Printer(db_connection, shared_obj, config)
+	printer = Printer(db_connection, shared_obj, config, sendWSMessage)
 	app.add_routes([
 		web.get('/api/print/{action}', printer.get),
 		web.post('/api/print/{action}', printer.post),
@@ -225,7 +230,8 @@ async def http_server(db_connection, shared_obj, config):
 		web.static('/', './static')
 	])
 
-	runner = web.AppRunner(app)
+	setup_middlewares(app)
+	runner = web.AppRunner(app, logger=LOGGER)
 	await runner.setup()
 	site = web.TCPSite(runner, 'localhost', 8080)
 	await site.start()

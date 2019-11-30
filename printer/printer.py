@@ -4,8 +4,6 @@ import re
 import winsound
 
 import openpyxl
-# import win32com
-# import win32com.client
 from comtypes import CoInitializeEx
 
 from openpyxl.utils.cell import get_column_letter

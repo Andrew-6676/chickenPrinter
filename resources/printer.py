@@ -12,11 +12,12 @@ from printer.printer import genereate_file_to_print, xlsx_to_pdf, print_file
 LOGGER = logging.getLogger('app')
 
 class Printer():
-	def __init__(self, db_connection, shared_data_obj=None, config=None):
+	def __init__(self, db_connection, shared_data_obj=None, config=None, smf=None):
 		self.shared_data_obj = shared_data_obj
 		self.config = config
 		self.conn = db_connection
 		self.cursor = db_connection.cursor()
+		self.smf = smf
 
 	async def get(self, request):
 		action = request.match_info.get('action', None)
@@ -33,6 +34,7 @@ class Printer():
 		params = json.loads(await request.text())
 
 		if (action=='label' or action == 'total') and subaction==None:
+			await self.smf('print', 'start')
 			winsound.Beep(4500, 70)
 			sql = """select * from "PRODUCTION" where "id"={} and "deleted"=0""".format(params['id'])
 			self.cursor.execute(sql)
@@ -69,6 +71,8 @@ class Printer():
 			except Exception as ex:
 				LOGGER.error('Printing error: ' + str(ex))
 				traceback.print_exc()
+			finally:
+				await self.smf('print', 'end')
 
 			return web.Response(text=json.dumps({'status': 'ok'}))
 
