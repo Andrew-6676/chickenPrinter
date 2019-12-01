@@ -5,3 +5,5 @@
 - [nodejs](https://nodejs.org/en/download/) (+ [bwip-js](https://www.npmjs.com/package/bwip-js/v/1.7.3) `npm install -g bwip-js`)
 
 в конфиге прописать имя принтера (посмотреть в свойствах), путь к БД
+
+Самый компактный из найденных шрифтов - [compact](http://allfont.ru/download/compact/)
