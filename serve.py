@@ -217,7 +217,9 @@ async def http_server(db_connection, shared_obj, config):
 	app.add_routes([
 		web.get('/api/print/{action}', printer.get),
 		web.post('/api/print/{action}', printer.post),
-		web.post('/api/print/{action}/{subaction}', printer.post)
+		web.get('/api/print/{action}/{subaction}', printer.get),
+		web.post('/api/print/{action}/{subaction}', printer.post),
+		web.delete('/api/print/{action}/{subaction}', printer.delete)
 	])
 
 	index = Index(db_connection, shared_obj, config)

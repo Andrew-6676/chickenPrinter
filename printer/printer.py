@@ -14,11 +14,9 @@ from printer.bar_code import insertBarCode
 # ----------------------------------------------------------------------------------------------- #
 
 def beep():
-	frequency = 2500  # Set Frequency To 2500 Hertz
-	duration = 100  # Set Duration To 1000 ms == 1 second
-	winsound.Beep(frequency, duration)
-	winsound.Beep(frequency, duration)
-	winsound.Beep(frequency, duration)
+	winsound.Beep(2500, 100)
+	winsound.Beep(2500, 100)
+	winsound.Beep(2500, 100)
 # ----------------------------------------------------------------------------------------------- #
 def xlsx_to_pdf(src_file):
 	"""
