@@ -2,6 +2,7 @@ aiohttp
 colorama
 et-xmlfile
 falcon
+fdb
 gunicorn
 jdcal
 openpyxl
