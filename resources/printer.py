@@ -108,7 +108,7 @@ class Printer():
 				p = xlsx_to_pdf(x)
 				print('generate pdf', time.time() - t)
 				t = time.time()
-				print_file(p)
+				print_file(p, self.config.printer.gs)
 				print('print file', time.time() - t)
 				tt = round(time.time() - t0, 3)
 				print('total', tt)

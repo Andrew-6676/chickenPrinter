@@ -80,7 +80,7 @@ def genereate_file_to_print(template_file, data):
 
 	return current_work_dir + '/tmp/print.xlsx'
 # ----------------------------------------------------------------------------------------------- #
-def print_file(pdf_file_name):
+def print_file(pdf_file_name, gs='gswin32c'):
 	"""
 	Выводим на принтер pdf-файл
 	:param pdf_file_name:
@@ -96,7 +96,7 @@ def print_file(pdf_file_name):
 	# #win32api.ShellExecute (0, "print", filename, f'"{win32print.GetDefaultPrinter()}"', ".", 0)
 	# win32api.ShellExecute(0, 'open', GSPRINT_PATH, '-ghostscript "'+GHOSTSCRIPT_PATH+'" -printer "'+printer_name+'" "1.pdf"', '.', 0)
 
-	args = 'gswin32c.exe ' \
+	args = gs + '.exe ' \
 	       '-sDEVICE=mswinpr2 ' \
 	       '-dBATCH ' \
 	       '-dNOPAUSE ' \
