@@ -7,3 +7,5 @@
 в конфиге прописать путь к БД
 
 Самый компактный из найденных шрифтов - [compact](http://allfont.ru/download/compact/)
+
+Microsoft Office
