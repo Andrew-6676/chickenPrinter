@@ -68,13 +68,14 @@ def genereate_file_to_print(template_file, data):
 				sheet[get_column_letter(i + 1) + str(k + 1)] = newCell
 
 				# ищем штрихкод
-				bar_res = re.findall(r'\{\{(.+)=(ean13|code128)\}\}', newCell)
+				bar_res = re.findall(r'\{\{(.+)=(ean13|code128),?(\d+)?\}\}', newCell)
 				if bar_res:
 					sheet[get_column_letter(i + 1) + str(k + 1)] = ''
-					code_data, code_type = bar_res[0]
+					code_data, code_type, rotate = bar_res[0]
 					code_data = data[code_data]
-					# print('-->', get_column_letter(i + 1) + str(k + 1), code_type, code_data)
-					insertBarCode(sheet, get_column_letter(i + 1) + str(k + 1), code_type, code_data)
+					rotate = rotate if rotate else 0
+					print('-->', get_column_letter(i + 1) + str(k + 1), code_type, code_data, rotate)
+					insertBarCode(sheet, get_column_letter(i + 1) + str(k + 1), code_type, code_data, int(rotate))
 
 	wb.save(current_work_dir + '/tmp/print.xlsx')
 

@@ -1,6 +1,6 @@
 import os
-import time
 from io import BytesIO
+
 import barcode
 from PIL import Image as PILImage
 import openpyxl
@@ -53,9 +53,10 @@ def generateBarCode_tree(type, data):
 	# image.convert('1').save('barcode.png')
 	return image
 # ----------------------------------------------------------------------------------------------- #
-def generateBarCode_node(type, data):
+def generateBarCode_node(type, data, rotate=0):
+	# rotate = '--rotate=' + {0: 'N', 90: 'R', 270: 'L', 180: 'I'}[rotate]
 	if type=='ean13':
-		command = f'bwip-js --bcid={type} --text={data} --includetext=true  --scaleY=1 --scale=2 --height=10 --width=25 --textyoffset=-5  code1.png'
+		command = f'bwip-js --bcid={type} --text={data} --includetext=true  --scaleY=1 --scale=2 --height=10 --width=25 --textyoffset=-5 code1.png'
 		os.system(command)
 		image = PILImage.open('code1.png')
 		return image
@@ -63,11 +64,14 @@ def generateBarCode_node(type, data):
 		command = f'bwip-js --bcid={type} --text={data} --includetext=true --textgaps=1 --includetext=true  --scaleY=1 --scale=2 --height=10 --width=25 code2.png'
 		os.system(command)
 		image = PILImage.open('code2.png')
-		return image
+		im2 = image.rotate(-rotate, expand=True)
+		im2.save('code2.png')
+		im3 = PILImage.open('code2.png')
+		return im3
 
 # ----------------------------------------------------------------------------------------------- #
-def insertBarCode(sheet, anchor, code_type, code_data):
-	im = generateBarCode_node(code_type, code_data)
+def insertBarCode(sheet, anchor, code_type, code_data, rotate):
+	im = generateBarCode_node(code_type, code_data, rotate)
 	img = openpyxl.drawing.image.Image(im)
 	img.anchor = anchor
 	sheet.add_image(img)
