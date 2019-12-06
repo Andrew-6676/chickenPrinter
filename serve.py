@@ -118,7 +118,7 @@ async def websocket_handler(websocket, path, shared_data_obj=None):
 
 
 bound_handler = functools.partial(websocket_handler, shared_data_obj=shared_data_obj)
-start_ws_server = websockets.serve(bound_handler, "localhost", 8888)
+start_ws_server = websockets.serve(bound_handler, "0.0.0.0", 8888)
 
 
 ##############################################################################
@@ -235,7 +235,7 @@ async def http_server(db_connection, shared_obj, config):
 	setup_middlewares(app)
 	runner = web.AppRunner(app, logger=LOGGER)
 	await runner.setup()
-	site = web.TCPSite(runner, 'localhost', 8080)
+	site = web.TCPSite(runner, '0.0.0.0', 8080)
 	await site.start()
 
 
