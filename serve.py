@@ -225,11 +225,15 @@ async def http_server(db_connection, shared_obj, config):
 	index = Index(db_connection, shared_obj, config)
 	app.add_routes([
 		web.get('/', index.get),
+		web.get('/users', index.get),
+		web.get('/weighing', index.get),
+		web.get('/templates', index.get),
+		web.get('/production/list', index.get),
 		web.get('/api/{action}', index.get)
 	])
 
 	app.add_routes([
-		web.static('/', './static')
+		web.static('/', './static'),
 	])
 
 	setup_middlewares(app)
