@@ -7,7 +7,31 @@
 
 Монитор COM-порта - [Advanced.Serial.Port.Monitor](https://github.com/Andrew-6676/chickenPrinter/files/3938108/Advanced.Serial.Port.Monitor.3.5.41.Withkey.zip)
 
-в конфиге прописать путь к БД
+-------
+##  Содержимое `config.ini` (в папке с програмой)
+```ini
+[report]
+	database=localhost:C:\DATABASE.FDB
+	limit=7
+[scales]
+	port=COM1
+	minWeight=0.01
+[printer]
+	name=default
+	gs=gswin32c
+[websocket]
+	port=8888
+[programmer]
+	phone=336959382
+	mail=andrew-6676@ya.ru
+	name=Андрей
+```
+-------
+База данных - [DATABASE.ZIP](https://github.com/Andrew-6676/chickenPrinter/files/3938129/DATABASE.ZIP)
+
+Шаблоны - [templates.zip](https://github.com/Andrew-6676/chickenPrinter/files/3938130/templates.zip)
+
+-------
 
 Самый компактный из найденных шрифтов - [compact](http://allfont.ru/download/compact/)
 
