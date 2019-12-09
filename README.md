@@ -1,10 +1,10 @@
 # chickenPrinter
 Обращаем внимание на разрядность системы!
 - [FireBird 2.5](https://firebirdsql.org/en/firebird-2-5/) (может быть установлен на любом компе в сети, там же должна лежать и БД)
-- [python 3.7](https://www.python.org/downloads/release/python-380/) (`pip install -r requirements.txt`) (добавить в path)
-- [Ghostscript](https://www.ghostscript.com/download/gsdnld.html) (добавить в path)
-- [nodejs](https://nodejs.org/en/download/) (+ [bwip-js](https://www.npmjs.com/package/bwip-js/v/1.7.3) `npm install -g bwip-js`)
-- Microsoft Office (Excel)
+- [python 3.7](https://www.python.org/downloads/release/python-380/) (`pip install -r requirements.txt`) (добавить в path) (для запуска программы)
+- [Ghostscript](https://www.ghostscript.com/download/gsdnld.html) (добавить в path) (для вывода на принтер)
+- [nodejs](https://nodejs.org/en/download/) (+ [bwip-js](https://www.npmjs.com/package/bwip-js/v/1.7.3) `npm install -g bwip-js`) (для формирования штрихкода)
+- Microsoft Office (Excel) (для конвертации xlsx в pdf)
 
 Монитор COM-порта - [Advanced.Serial.Port.Monitor](https://github.com/Andrew-6676/chickenPrinter/files/3938108/Advanced.Serial.Port.Monitor.3.5.41.Withkey.zip)
 
