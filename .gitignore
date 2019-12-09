@@ -5,3 +5,7 @@ venv
 ~*
 */tmp/print.*
 
+/config.ini
+/printer/templates/template_*
+/DATABASE.FDB
+/*.png
