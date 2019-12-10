@@ -28,7 +28,7 @@ class Production:
 				self.cursor.execute(sql)
 				data = fetchDataOne(self.cursor)
 		else:
-			sql = 'select * from "PRODUCTION" where "deleted"=0 order by "name"'
+			sql = 'select * from "PRODUCTION" where "deleted"=0 order by "id"'
 			self.cursor.execute(sql)
 			data = fetchDataAll(self.cursor)
 			if id == 'excel':
@@ -54,12 +54,19 @@ class Production:
 	async def post(self, request):
 		prod = json.loads(await request.text())
 		print('post ', prod)
+		sql_check = 'select count(*) as ok from "PRODUCTION" where "id"={}'.format(prod['new_id'])
+		self.cursor.execute(sql_check)
+		cdata = fetchDataOne(self.cursor)
+		# print('=====>',cdata)
+		if cdata['OK'] > 0:
+			return web.Response(text=json.dumps({'status': 'error', 'message': 'PLU уже занят.'}))
+
 		sql = 'insert into "PRODUCTION" ' \
-		      '("group_name", "name", "descr", "ingridients", "storage_conditions", ' \
+		      '("id", "group_name", "name", "descr", "ingridients", "storage_conditions", ' \
 		      '"nutritional_value", "energy_value", "RC_BY", "TU_BY", "STB", ' \
 		      '"expiration_date", "bar_code", "code128_prefix") ' \
 		      'values' \
-		      f"('{prod['group_name']}', '{prod['name']}', '{prod['descr']}', '{prod['ingridients']}', '{prod['storage_conditions']}', " \
+		      f"({prod['new_id']}, '{prod['group_name']}', '{prod['name']}', '{prod['descr']}', '{prod['ingridients']}', '{prod['storage_conditions']}', " \
 		      f"'{prod['nutritional_value']}', '{prod['energy_value']}', '{prod['RC_BY']}', '{prod['TU_BY']}', '{prod['STB']}', " \
 		      f"'{prod['expiration_date']}', '{prod['bar_code']}', '{prod['code128_prefix']}')"
 		try:
@@ -76,6 +83,14 @@ class Production:
 		prod = json.loads(await request.text())
 		id = request.match_info.get('id', None)
 		print('put ', prod)
+
+		# sql_check = 'select count(*) as ok from "PRODUCTION" where "id"={}'.format(prod['id'])
+		# self.cursor.execute(sql_check)
+		# cdata = fetchDataOne(self.cursor)
+		# # print('=====>',cdata)
+		# if cdata['OK'] > 0:
+		# 	return web.Response(text=json.dumps({'status': 'error', 'message': 'PLU уже занят.'}))
+
 		sql = 'update "PRODUCTION" ' \
 			  "set " \
 		      f"\"group_name\"='{prod['group_name']}', " \
