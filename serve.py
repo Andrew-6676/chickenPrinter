@@ -172,9 +172,9 @@ async def scales_reader(shared_data_obj, config=None):
 					else:
 						# глухой и долгий бууууууп
 						winsound.Beep(200, 900)
-						LOGGER.error('Вес слишком мал:' + str(curr_weight))
+						LOGGER.error('Вес слишком мал: ' + str(curr_weight))
 						# await sendWSMessage('weight', curr_weight)
-						await sendWSMessage('messages', {'message': 'Вес слишком мал:' + str(curr_weight)})
+						await sendWSMessage('messages', {'message': 'Вес слишком мал: ' + str(curr_weight)})
 			except Exception as ex:
 				LOGGER.error(f'Ошибка чтения веса: {data}: ' + str(ex))
 				traceback.print_exc()
