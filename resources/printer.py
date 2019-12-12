@@ -1,6 +1,8 @@
+import asyncio
 import json
 import logging
 import os
+import sys
 import time
 import traceback
 import winsound
@@ -81,7 +83,7 @@ class Printer():
 
 		if (action=='label' or action == 'total') and subaction==None:
 			params = json.loads(await request.text())
-			await self.smf('print', 'start')
+			await self.smf('print', f'start{" totals" if action == "total" else ""}')
 			winsound.Beep(4500, 70)
 			sql = """select * from "PRODUCTION" where "id"={} and "deleted"=0""".format(params['id'])
 			self.cursor.execute(sql)
@@ -95,31 +97,44 @@ class Printer():
 			data['packs'] = params.get('packs')
 			data['ean_13'] = data['bar_code']
 
-			t0 = time.time()
-			t = time.time()
-
 			template = str(params.get("template", 0))
 			if action == 'total':
 				template += '_total'
 			try:
-				x = genereate_file_to_print(f'./printer/templates/template_{template}.xlsx', data)
-				print('generate xls', time.time() - t)
+				times = []
+				t0 = time.time()
+
+				# формиреум xlxs с данными
+				t = time.time()
+				x = await genereate_file_to_print(f'./printer/templates/template_{template}.xlsx', data)
+				times.append(round(time.time() - t, 3))
+				# print('generate xls', time.time() - t)
+				await asyncio.sleep(0.01)
+
+				# генерируем pdf для печати
 				t = time.time()
 				p = xlsx_to_pdf(x)
-				print('generate pdf', time.time() - t)
+				times.append(round(time.time() - t, 3))
+				# print('generate pdf', time.time() - t)
+				await asyncio.sleep(0.01)
+
+				# отправляем на принтер
 				t = time.time()
 				print_file(p, self.config.printer.gs)
 				print('print file', time.time() - t)
 				tt = round(time.time() - t0, 3)
-				print('total', tt)
+				times.append(round(time.time() - t, 3))
+				# print('total', tt)
+
 				winsound.Beep(1000, 100)
-				winsound.Beep(2500, 100)
-				LOGGER.info(f'Printing: time={tt}c, template={template}')
+				LOGGER.info(f'Printing{" totals" if action == "total" else ""}: time={str(times)}, {tt}c, template={template}')
+				await self.smf('print', f'end{" totals" if action == "total" else ""}')
+				# if action == "total":
+				# 	sys.exit(2)
 			except Exception as ex:
 				LOGGER.error('Printing error: ' + str(ex))
+				await self.smf('print', f'end{" totals" if action == "total" else ""}')
 				traceback.print_exc()
-			finally:
-				await self.smf('print', 'end')
 
 			return web.Response(text=json.dumps({'status': 'ok'}))
 

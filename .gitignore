@@ -3,7 +3,7 @@ __pycache__
 venv
 *.log
 ~*
-*/tmp/print.*
+*/tmp/print*
 
 /config.ini
 /printer/templates/template_*

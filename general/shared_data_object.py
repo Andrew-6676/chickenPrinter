@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 import time
@@ -25,31 +26,15 @@ class DataClass(object):
 	printData = None
 	tareMode = False
 
-	def __init__(self):
+	def __init__(self,  cfg, db_connection, sendWSMessage):
 		print('**************** shared_data_obj INIT **********************')
+		self.config = cfg
+		self.cursor = db_connection.cursor()
+		self.reporter = Reporter(db_connection, cfg)
+		self.sendWSMessage = sendWSMessage
 
 	def hello(self):
 		return 'hello'
-
-	def setConfig(self, cfg, db_connection):
-		self.config = cfg
-		# CoInitializeEx()
-		# self.excel = win32com.client.Dispatch("Excel.Application")
-		# self.excel.Visible = False
-		# LOGGER.info('Excel started')
-
-		# def dict_factory(cursor, row):
-		# 	d = {}
-		# 	for idx, col in enumerate(cursor.description):
-		# 		d[col[0]] = row[idx]
-		# 	return d
-		#
-		# database = cfg.report.database
-		# db_connection = sqlite3.connect(database, check_same_thread=False)
-		# db_connection.row_factory = dict_factory
-
-		self.cursor = db_connection.cursor()
-		self.reporter = Reporter(db_connection, cfg)
 
 	def getExcel(self):
 		return self.excel
@@ -79,18 +64,22 @@ class DataClass(object):
 		LOGGER.debug(f'Set tare mode = {mode}')
 		self.tareMode = mode
 
-	def print(self, weight):
+	async def print(self, weight):
 		if self.tareMode:
-			LOGGER.error('Режим считывания тары')
+			LOGGER.info('Режим считывания тары')
 			self.tareMode = False
-			winsound.Beep(500, 300)
+			winsound.Beep(4500, 70)
+			winsound.Beep(3500, 200)
 			return
 		if not self.printData:
 			LOGGER.error('Нет данных для печати')
+			await self.sendWSMessage('messages', {'message': 'Нет данных для печати'})
 			winsound.Beep(500, 150)
 			winsound.Beep(500, 150)
 			return 1
 
+		await self.sendWSMessage('print', 'start')
+		await asyncio.sleep(0.01)
 		winsound.Beep(4500, 70)
 		winsound.Beep(4500, 70)
 		winsound.Beep(3500, 200)
@@ -108,21 +97,34 @@ class DataClass(object):
 		data['ean_13'] = data['bar_code']
 		data['code_128'] = code128
 
-		t0 = time.time()
-		t = time.time()
 
 		template = self.printData.get("template", 0)
 		try:
-			x = genereate_file_to_print(f'./printer/templates/template_{template}.xlsx', data)
-			print('xls', time.time() - t)
+			await asyncio.sleep(0.01)
+			times = []
+			t0 = time.time()
+
+			# формиреум xlxs с данными
+			t = time.time()
+			x = await genereate_file_to_print(f'./printer/templates/template_{template}.xlsx', data)
+			times.append(round(time.time() - t, 3))
+			# print('xls', time.time() - t)
+			await asyncio.sleep(0.01)
+
+			# генерируем pdf для печати
 			t = time.time()
 			p = xlsx_to_pdf(x)
-			print('pdf', time.time() - t)
+			times.append(round(time.time() - t, 3))
+			# print('pdf', time.time() - t)
+			await asyncio.sleep(0.01)
+
+			# отправляем на принтер
 			t = time.time()
 			print_file(p, self.config.printer.gs)
-			print('print', time.time() - t)
+			# print('print', time.time() - t)
 			tt = round(time.time() - t0, 3)
-			print('total time', tt)
+			times.append(round(time.time() - t, 3))
+			# print('total times', times)
 
 			log_data = {
 				'id_user': self.printData.get('user_id'),
@@ -133,8 +135,11 @@ class DataClass(object):
 			}
 			self.reporter.log_weighing(log_data)
 
-			winsound.Beep(2500, 100)
-			LOGGER.info(f'Printing: time={tt}c, template={template}')
+			await asyncio.sleep(0.01)
+			LOGGER.info(f'Printing: time={str(times)}, {tt}c, template={template}')
+			await self.sendWSMessage('print', 'end')
+			winsound.Beep(2500, 700)
 		except Exception as ex:
+			await self.sendWSMessage('print', 'end')
 			LOGGER.error('Printing error: ' + str(ex))
 			traceback.print_exc()

@@ -1,5 +1,6 @@
 import json
-import sys
+import random
+import time
 import traceback
 import winsound
 
@@ -17,11 +18,10 @@ import asyncio
 import functools
 import logging
 import re
-import time
 
 import serial
 import websockets
-from colorama import Fore, Style, Back
+from colorama import Fore, Style
 
 from resources import User, Production, Index, Printer, setup_middlewares
 
@@ -41,32 +41,13 @@ def exit_handler():
 LOGGER.info(u'START PROGRAMM')
 
 cfg = Config('./config.ini').getConfig()
-
-
-
-
-
-print('Открытие базы данных...')
-database = cfg.report.database
-# db_connection = sqlite3.connect(database, check_same_thread=False)
-# db_connection.row_factory = dict_factory
-
-db_connection = fdb.connect(dsn=database, user='sysdba', password='masterkey')
-
-# расшареный между процесами объект с данными
-shared_data_obj = DataClass()
-shared_data_obj.setConfig(cfg, db_connection)
-
-atexit.register(exit_handler)
-
 # -----------------------------------
 
 WS = set()
 
-
 async def notify_state():
 	if WS:  # asyncio.wait doesn't accept an empty list
-		message = json.dumps({'event': 'messages', 'data': 'Connected'})
+		message = json.dumps({'event': 'messages', 'data': json.dumps({'message':'Connected'})})
 		await asyncio.wait([user.send(message) for user in WS])
 
 
@@ -81,6 +62,16 @@ async def register(websocket):
 	WS.add(websocket)
 	await notify_state()
 
+##############################################################################
+
+print('Открытие базы данных...')
+database = cfg.report.database
+db_connection = fdb.connect(dsn=database, user='sysdba', password='masterkey')
+
+# расшареный между процесами объект с данными
+shared_data_obj = DataClass(cfg, db_connection, sendWSMessage)
+
+# atexit.register(exit_handler)
 ##############################################################################
 
 async def websocket_handler(websocket, path, shared_data_obj=None):
@@ -106,17 +97,6 @@ async def websocket_handler(websocket, path, shared_data_obj=None):
 			data = message
 			await asyncio.sleep(0.01)
 
-	# 	scales_port = 'COM3'
-	# 	if shared_data_obj.setScalesState():
-	# 		await sendWSMessage('scales', '{connected: true, '
-	# 		                              'message: Подключено к порту ' + scales_port + '}')
-	# 	else:
-	# 		await sendWSMessage('scales', '{connected: false, '
-	# 		                              'message: Не удалось подключитсья к порту ' + scales_port + '}')
-	# else:
-	# 	await websocket.send(json.dumps({'event':'messages', 'data': 'test response'}))
-
-
 bound_handler = functools.partial(websocket_handler, shared_data_obj=shared_data_obj)
 start_ws_server = websockets.serve(bound_handler, "0.0.0.0", 8888)
 
@@ -136,7 +116,7 @@ async def scales_reader(shared_data_obj, config=None):
 				connect = serial.Serial(port, 9600, timeout=0.1)
 			except Exception as exc:
 				shared_data_obj.setScalesState(False)
-				await sendWSMessage('message', f'error connect {port}')
+				await sendWSMessage('messages', {'message': f'error connect {port}'})
 				await sendWSMessage('scales',
 				                    '{connected: false, '
 				                    'message: Ошибка подключения к порту ' + str(port) + '}')
@@ -156,10 +136,24 @@ async def scales_reader(shared_data_obj, config=None):
 	await sendWSMessage('scales', '{connected: true, '
 	                              'message: Подключено к порту ' + str(scales_port) + '}')
 	new_weight = True  # признак того, что груз на весах сменили
+	ttt = time.time()
 	while True:
 		await asyncio.sleep(0.01)
+
 		# ждём когда придёт стабильный не нулевой вес
 		data = ser_scales.readline()
+
+		# КУСОК КОДА ДЛЯ ТЕСТИРОВАНИЯ ПОКА НЕТ ВЕСОВ
+		# if (time.time() - ttt) > 7:
+		# 	ttt = time.time()
+		# 	cw = abs(round(random.random() * 10  - 1, 3))
+		# 	data = '__ST___________' + str(cw) + 'kg'
+		# 	print(data, len(data))
+		# 	await asyncio.sleep(0.01)
+		# else:
+		# 	await asyncio.sleep(1.01)
+		# 	data = '__ST___________' + '0.000' + 'kg'
+
 		if len(data) == 22:
 			try:
 				match = re.findall(r'..(..).*-*0*([0-9]+\.\d+)', str(data))
@@ -174,19 +168,20 @@ async def scales_reader(shared_data_obj, config=None):
 					if curr_weight > float(config.scales.minweight):
 						# сообщаем в браузер о факте взвешивания
 						await sendWSMessage('weight', curr_weight)
-						await sendWSMessage('print', 'start')
-						shared_data_obj.print(curr_weight)
-						await sendWSMessage('print', 'end')
+						await shared_data_obj.print(curr_weight)
 					else:
-						winsound.Beep(300, 700)
-						LOGGER.error(f'Вес слишком мал: {curr_weight}')
-						await sendWSMessage('weight', curr_weight)
-						await sendWSMessage('messages', f'Вес слишком мал: {curr_weight}')
+						# глухой и долгий бууууууп
+						winsound.Beep(200, 900)
+						LOGGER.error('Вес слишком мал:' + str(curr_weight))
+						# await sendWSMessage('weight', curr_weight)
+						await sendWSMessage('messages', {'message': 'Вес слишком мал:' + str(curr_weight)})
 			except Exception as ex:
 				LOGGER.error(f'Ошибка чтения веса: {data}: ' + str(ex))
 				traceback.print_exc()
 		else:
 			await asyncio.sleep(0.01)
+			#LOGGER.error(f'Ошибка взвешивания: {str(data)}')
+			#await sendWSMessage('messages', f'Ошибка взвешивания: {str(data)}')
 
 
 

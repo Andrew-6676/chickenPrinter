@@ -1,3 +1,4 @@
+import asyncio
 import os
 from io import BytesIO
 
@@ -70,7 +71,8 @@ def generateBarCode_node(type, data, rotate=0):
 		return im3
 
 # ----------------------------------------------------------------------------------------------- #
-def insertBarCode(sheet, anchor, code_type, code_data, rotate):
+async def insertBarCode(sheet, anchor, code_type, code_data, rotate):
+	await asyncio.sleep(0.01)
 	im = generateBarCode_node(code_type, code_data, rotate)
 	img = openpyxl.drawing.image.Image(im)
 	img.anchor = anchor

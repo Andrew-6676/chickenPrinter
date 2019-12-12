@@ -33,7 +33,8 @@ def xlsx_to_pdf(src_file):
 
 	ws_index_list = [1]  # say you want to print these sheets
 
-	path_to_pdf = current_work_dir + '/tmp/' + 'print.pdf'
+	tmp_file = 'print_total' if re.match(r'.*_total.*', src_file) else 'print'
+	path_to_pdf = current_work_dir + '/tmp/' + tmp_file +'.pdf'
 
 	wb.WorkSheets(ws_index_list).Select()
 	wb.ActiveSheet.ExportAsFixedFormat(0, path_to_pdf)
@@ -44,7 +45,7 @@ def xlsx_to_pdf(src_file):
 	# excel.Quit()
 
 # ----------------------------------------------------------------------------------------------- #
-def genereate_file_to_print(template_file, data):
+async def genereate_file_to_print(template_file, data):
 	"""
 	Подстановка значений из data в шаблон и конвертирование его в PDF
 	:param data: данные для вставки в шаблон
@@ -74,12 +75,13 @@ def genereate_file_to_print(template_file, data):
 					code_data, code_type, rotate = bar_res[0]
 					code_data = data[code_data]
 					rotate = rotate if rotate else 0
-					print('-->', get_column_letter(i + 1) + str(k + 1), code_type, code_data, rotate)
-					insertBarCode(sheet, get_column_letter(i + 1) + str(k + 1), code_type, code_data, int(rotate))
+					# print('-->', get_column_letter(i + 1) + str(k + 1), code_type, code_data, rotate)
+					await insertBarCode(sheet, get_column_letter(i + 1) + str(k + 1), code_type, code_data, int(rotate))
 
-	wb.save(current_work_dir + '/tmp/print.xlsx')
+	tmp_file = 'print_total.xlsx' if re.match(r'.*_total.*', template_file) else 'print.xlsx'
+	wb.save(current_work_dir + '/tmp/' + tmp_file)
 
-	return current_work_dir + '/tmp/print.xlsx'
+	return current_work_dir + '/tmp/' + tmp_file
 # ----------------------------------------------------------------------------------------------- #
 def print_file(pdf_file_name, gs='gswin32c'):
 	"""
