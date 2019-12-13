@@ -165,16 +165,22 @@ async def scales_reader(shared_data_obj, config=None):
 				if match and match[0][0] == 'ST' and new_weight and curr_weight != 0:
 					new_weight = False  # чтобы не считввать многократно вес одной и той же курицы
 					LOGGER.info(f'Read weight data: {data} = {match}')
-					if curr_weight > float(config.scales.minweight):
+					min_weight = float(config.scales.mintareweight) if shared_data_obj.tareMode else float(config.scales.minprodweight)
+					if curr_weight > min_weight:
+						# if curr_weight > float(config.scales.minweight):
 						# сообщаем в браузер о факте взвешивания
 						await sendWSMessage('weight', curr_weight)
 						await shared_data_obj.print(curr_weight)
 					else:
 						# глухой и долгий бууууууп
-						winsound.Beep(200, 900)
+						# winsound.Beep(200, 900)
 						LOGGER.error('Вес слишком мал: ' + str(curr_weight))
+						new_weight = True
+						curr_weight = 0
+						await asyncio.sleep(0.05)
+						continue
 						# await sendWSMessage('weight', curr_weight)
-						await sendWSMessage('messages', {'message': 'Вес слишком мал: ' + str(curr_weight)})
+						# await sendWSMessage('messages', {'message': 'Вес слишком мал: ' + str(curr_weight)})
 			except Exception as ex:
 				LOGGER.error(f'Ошибка чтения веса: {data}: ' + str(ex))
 				traceback.print_exc()
