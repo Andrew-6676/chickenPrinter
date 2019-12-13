@@ -21,7 +21,8 @@
 	limit=7
 [scales]
 	port=COM1
-	minWeight=0.01
+	minTareWeight=0.01
+    minProdWeight=0.01
 [printer]
 	name=default
 	gs=gswin32c
