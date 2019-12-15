@@ -9,7 +9,7 @@ import treepoem
 from barcode.writer import ImageWriter
 
 # ----------------------------------------------------------------------------------------------- #
-def generateBarCode_simple(type, data):
+def generateBarCode_simple(type, data, rotate=0):
 	fp = BytesIO()
 	writer_options = {
         'module_width': 0.08,
@@ -19,7 +19,8 @@ def generateBarCode_simple(type, data):
         'text_distance': 0.7,
 	}
 
-	barcode.generate(type, data,
+	barcode.generate(type,
+	                 str(data),
 	                 writer=ImageWriter(),
 	                 output=fp,
 	                 writer_options=writer_options)
@@ -71,8 +72,7 @@ def generateBarCode_node(type, data, rotate=0):
 		return im3
 
 # ----------------------------------------------------------------------------------------------- #
-async def insertBarCode(sheet, anchor, code_type, code_data, rotate):
-	await asyncio.sleep(0.01)
+def insertBarCode(sheet, anchor, code_type, code_data, rotate):
 	im = generateBarCode_node(code_type, code_data, rotate)
 	img = openpyxl.drawing.image.Image(im)
 	img.anchor = anchor

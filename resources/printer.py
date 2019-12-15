@@ -121,7 +121,7 @@ class Printer():
 				# отправляем на принтер
 				t = time.time()
 				print_file(p, self.config.printer.gs)
-				print('print file', time.time() - t)
+				# print('print file', time.time() - t)
 				tt = round(time.time() - t0, 3)
 				times.append(round(time.time() - t, 3))
 				# print('total', tt)

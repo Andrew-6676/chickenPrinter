@@ -17,32 +17,6 @@ def beep():
 	winsound.Beep(2500, 100)
 	winsound.Beep(2500, 100)
 	winsound.Beep(2500, 100)
-# ----------------------------------------------------------------------------------------------- #
-def xlsx_to_pdf(src_file):
-	"""
-	конвертируем XLSX в PDF
-	:param src_file: путь к конвертируемому файлу
-	:return: путь к получившемуся pdf-файлу
-	"""
-	CoInitializeEx()
-	# excel = win32com.client.Dispatch("Excel.Application")
-	# excel.Visible = False
-	current_work_dir = os.getcwd() + '/printer'
-	wb_path = src_file
-	wb = EXCEL.Workbooks.Open(wb_path)
-
-	ws_index_list = [1]  # say you want to print these sheets
-
-	tmp_file = 'print_total' if re.match(r'.*_total.*', src_file) else 'print'
-	path_to_pdf = current_work_dir + '/tmp/' + tmp_file +'.pdf'
-
-	wb.WorkSheets(ws_index_list).Select()
-	wb.ActiveSheet.ExportAsFixedFormat(0, path_to_pdf)
-
-	wb.Close()
-
-	return path_to_pdf
-	# excel.Quit()
 
 # ----------------------------------------------------------------------------------------------- #
 async def genereate_file_to_print(template_file, data):
@@ -76,12 +50,37 @@ async def genereate_file_to_print(template_file, data):
 					code_data = data[code_data]
 					rotate = rotate if rotate else 0
 					# print('-->', get_column_letter(i + 1) + str(k + 1), code_type, code_data, rotate)
-					await insertBarCode(sheet, get_column_letter(i + 1) + str(k + 1), code_type, code_data, int(rotate))
+					insertBarCode(sheet, get_column_letter(i + 1) + str(k + 1), code_type, code_data, int(rotate))
 
 	tmp_file = 'print_total.xlsx' if re.match(r'.*_total.*', template_file) else 'print.xlsx'
 	wb.save(current_work_dir + '/tmp/' + tmp_file)
 
 	return current_work_dir + '/tmp/' + tmp_file
+# ----------------------------------------------------------------------------------------------- #
+def xlsx_to_pdf(src_file):
+	"""
+	конвертируем XLSX в PDF
+	:param src_file: путь к конвертируемому файлу
+	:return: путь к получившемуся pdf-файлу
+	"""
+	current_work_dir = os.getcwd() + '/printer'
+	wb_path = src_file
+	wb = EXCEL.Workbooks.Open(wb_path)
+
+	ws_index_list = [1]  # say you want to print these sheets
+
+	tmp_file = 'print_total' if re.match(r'.*_total.*', src_file) else 'print'
+	path_to_pdf = current_work_dir + '/tmp/' + tmp_file +'.pdf'
+
+	wb.WorkSheets(ws_index_list).Select()
+	# ExportAsFixedFormat(type, filename, quality=0-good,1-bad, IncludeDocProperties, IgnorePrintAreas, From, To, OpenAfterPublish)
+	wb.ActiveSheet.ExportAsFixedFormat(0, path_to_pdf, 0, False, False, 1, 1)
+
+	wb.Close()
+
+	return path_to_pdf
+	# excel.Quit()
+
 # ----------------------------------------------------------------------------------------------- #
 def print_file(pdf_file_name, gs='gswin32c'):
 	"""
@@ -101,9 +100,10 @@ def print_file(pdf_file_name, gs='gswin32c'):
 
 	args = gs + '.exe ' \
 	       '-sDEVICE=mswinpr2 ' \
+	       '-q ' \
+	       '-dNOPROMPT -dFitPage ' \
 	       '-dBATCH ' \
 	       '-dNOPAUSE ' \
-	       '-dFitPage ' \
 	       '-sOutputFile="%printer%{}" '.format(printer_name)
 	ghostscript = args + f'"{pdf_file_name}"'
 	subprocess.call(ghostscript, shell=True)
