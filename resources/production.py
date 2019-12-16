@@ -64,11 +64,11 @@ class Production:
 		sql = 'insert into "PRODUCTION" ' \
 		      '("id", "group_name", "name", "descr", "ingridients", "storage_conditions", ' \
 		      '"nutritional_value", "energy_value", "RC_BY", "TU_BY", "STB", ' \
-		      '"expiration_date", "bar_code", "code128_prefix") ' \
+		      '"expiration_date", "bar_code", "code128_prefix", "inner_ean13") ' \
 		      'values' \
 		      f"({prod['new_id']}, '{prod['group_name']}', '{prod['name']}', '{prod['descr']}', '{prod['ingridients']}', '{prod['storage_conditions']}', " \
 		      f"'{prod['nutritional_value']}', '{prod['energy_value']}', '{prod['RC_BY']}', '{prod['TU_BY']}', '{prod['STB']}', " \
-		      f"'{prod['expiration_date']}', '{prod['bar_code']}', '{prod['code128_prefix']}')"
+		      f"'{prod['expiration_date']}', '{prod['bar_code']}', '{prod['code128_prefix']}', '{prod['inner_ean13']}')"
 		try:
 			self.cursor.execute(sql)
 			self.conn.commit()
@@ -105,7 +105,8 @@ class Production:
 		      f"\"STB\"='{prod['STB']}', " \
 		      f"\"expiration_date\"='{prod['expiration_date']}', " \
 		      f"\"bar_code\"='{prod['bar_code']}', " \
-		      f"\"code128_prefix\"='{prod['code128_prefix']}' " \
+		      f"\"code128_prefix\"='{prod['code128_prefix']}', " \
+		      f"\"inner_ean13\"='{prod['inner_ean13']}' " \
 		      f"where \"id\"={id}"
 		try:
 			self.cursor.execute(sql)

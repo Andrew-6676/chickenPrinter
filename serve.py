@@ -151,13 +151,13 @@ async def scales_reader(shared_data_obj, config=None):
 		# 	print(data, len(data))
 		# 	await asyncio.sleep(0.01)
 		# else:
-		# 	await asyncio.sleep(1.01)
+		# 	await asyncio.sleep(0.01)
 		# 	data = '__ST___________' + '0.000' + 'kg'
 
 		if len(data) == 22:
 			try:
 				match = re.findall(r'..(..).*-*0*([0-9]+\.\d+)', str(data))
-				curr_weight = round(float(match[0][1]), config.scales.precision)
+				curr_weight = round(float(match[0][1]), int(config.scales.precision))
 				if curr_weight == 0 and not new_weight:
 					await sendWSMessage('weight', 0)
 					new_weight = True
