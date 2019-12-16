@@ -157,7 +157,7 @@ async def scales_reader(shared_data_obj, config=None):
 		if len(data) == 22:
 			try:
 				match = re.findall(r'..(..).*-*0*([0-9]+\.\d+)', str(data))
-				curr_weight = float(match[0][1])
+				curr_weight = round(float(match[0][1]), config.scales.precision)
 				if curr_weight == 0 and not new_weight:
 					await sendWSMessage('weight', 0)
 					new_weight = True
