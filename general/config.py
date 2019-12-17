@@ -24,7 +24,8 @@ class Config:
 		print('Чтение параметров...')
 		self.file = file
 		self.cfg = configparser.ConfigParser()
-		self.cfg.read(file)
+		self.cfg.read(file, encoding='utf-8')
+		# cfg.readfp(codecs.open("myconfig", "r", "utf8"))
 
 		config_dict = {}
 		for section in self.cfg.sections():

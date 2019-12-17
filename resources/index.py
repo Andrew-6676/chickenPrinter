@@ -20,9 +20,16 @@ class Index:
 				return web.Response(body=f.read(), content_type='text/html')
 
 		if action == 'params':
-			sql = 'select * from "PARAMS"'
-			self.cursor.execute(sql)
-			data = fetchDataAll(self.cursor)
+			data = []
+			# sql = 'select * from "PARAMS"'
+			# self.cursor.execute(sql)
+			# data = fetchDataAll(self.cursor)
+			data.append({'key':'precision', 'value': self.config.scales.precision})
+			data.append({'key':'color', 'value': self.config.webserver.color})
+			data.append({'key':'server_name', 'value': self.config.webserver.name})
+			data.append({'key':'factory_code', 'value': self.config.webserver.factory_code})
+			data.append({'key':'code128_prefix', 'value': self.config.webserver.code128_prefix})
+
 			return web.Response(text=json.dumps(data))
 
 		if action == 'ping':

@@ -25,6 +25,7 @@ class DataClass(object):
 
 	printData = None
 	tareMode = False
+	tare = 0
 
 	def __init__(self,  cfg, db_connection, sendWSMessage):
 		print('**************** shared_data_obj INIT **********************')
@@ -64,7 +65,13 @@ class DataClass(object):
 		LOGGER.debug(f'Set tare mode = {mode}')
 		self.tareMode = mode
 
-	async def print(self, weight):
+	def setTare(self, t):
+		LOGGER.debug(f'Set tare = {t}')
+		self.tare = t
+
+	async def print(self, scales_weight):
+		weight = round(scales_weight - float(self.tare), int(self.config.scales.precision))
+
 		if self.tareMode:
 			LOGGER.info('Режим считывания тары')
 			self.tareMode = False
@@ -84,7 +91,13 @@ class DataClass(object):
 		winsound.Beep(4500, 70)
 		winsound.Beep(3500, 200)
 
-		code128 = self.printData['code128'].replace('-----', str(weight).replace('.','').zfill(5))
+		#str(weight).replace('.', '').zfill(5)
+		# ww = str(weight).split('.')
+		# w = ww[0].zfill(2) + (ww[1] if len(ww)==2 else '').ljust(3, '0')
+		w = str(round(weight*1000)).zfill(5)
+
+
+		code128 = self.printData['code128'].replace('-----', w)
 
 		sql = """select * from "PRODUCTION" where "id"={} and "deleted"=0""".format(self.printData['id'])
 		self.cursor.execute(sql)
