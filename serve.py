@@ -146,6 +146,7 @@ async def scales_reader(shared_data_obj, config=None):
 		data = ser_scales.readline()
 
 		# КУСОК КОДА ДЛЯ ТЕСТИРОВАНИЯ ПОКА НЕТ ВЕСОВ
+
 		# if (time.time() - ttt) > 10:
 		# 	ttt = time.time()
 		# 	cw = abs(round(random.random() * 10  - 1, 3))
