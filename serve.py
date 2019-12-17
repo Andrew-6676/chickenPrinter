@@ -92,6 +92,8 @@ async def websocket_handler(websocket, path, shared_data_obj=None):
 				})
 			if data['event'] == 'get-tare':
 				shared_data_obj.setTareMode(data['data'])
+			if data['event'] == 'set-tare':
+				shared_data_obj.setTare(data['data'])
 		except Exception as ex:
 			print(ex)
 			data = message
@@ -144,15 +146,15 @@ async def scales_reader(shared_data_obj, config=None):
 		data = ser_scales.readline()
 
 		# КУСОК КОДА ДЛЯ ТЕСТИРОВАНИЯ ПОКА НЕТ ВЕСОВ
-		# if (time.time() - ttt) > 7:
-		# 	ttt = time.time()
-		# 	cw = abs(round(random.random() * 10  - 1, 3))
-		# 	data = '__ST___________' + str(cw) + 'kg'
-		# 	print(data, len(data))
-		# 	await asyncio.sleep(0.01)
-		# else:
-		# 	await asyncio.sleep(0.01)
-		# 	data = '__ST___________' + '0.000' + 'kg'
+		if (time.time() - ttt) > 10:
+			ttt = time.time()
+			cw = abs(round(random.random() * 10  - 1, 3))
+			data = '__ST___________' + str(cw) + 'kg'
+			print(data, len(data))
+			await asyncio.sleep(0.01)
+		else:
+			await asyncio.sleep(0.01)
+			data = '__ST___________' + '0.000' + 'kg'
 
 		if len(data) == 22:
 			try:
