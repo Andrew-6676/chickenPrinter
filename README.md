@@ -29,6 +29,12 @@
 	gs=gswin32c
 [websocket]
 	port=8888
+[webserver]
+	port=8080
+	name=Комп намба уан
+	color=#f00
+	factory_code=6666
+	code128_prefix=22
 [programmer]
 	phone=336959382
 	mail=andrew-6676@ya.ru
