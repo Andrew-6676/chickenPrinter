@@ -156,9 +156,9 @@ async def scales_reader(shared_data_obj, config=None):
 
 		# if (time.time() - ttt) > 10:
 		# 	ttt = time.time()
-		# 	cw = abs(round(random.random() * 20  - 1, 2))
-		# 	b = str(cw).rjust(5, ' ').encode()
-		# 	data = b'ST,NT,\x05\xbb,   ' + b + b' kg\r\n'
+		# 	cw = abs(round(random.random() * 20  - 1, int(config.scales.precision)))
+		# 	b = str(cw).rjust(6, ' ').encode()
+		# 	data = b'ST,NT,\x05\xbb,  ' + b + b' kg\r\n'
 		# 	print(data, len(data))
 		# 	await asyncio.sleep(0.01)
 		# else:
