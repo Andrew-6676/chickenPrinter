@@ -23,6 +23,7 @@ import serial
 import websockets
 from colorama import Fore, Style
 
+from general.xls import EXCEL
 from resources import User, Production, Index, Printer, setup_middlewares
 
 colorama.init()
@@ -33,6 +34,7 @@ LOGGER = logging.getLogger('app')
 
 
 def exit_handler():
+	EXCEL.Quit()
 	print('=========================My application is ending!===========================')
 
 
@@ -71,7 +73,7 @@ db_connection = fdb.connect(dsn=database, user='sysdba', password='masterkey')
 # расшареный между процесами объект с данными
 shared_data_obj = DataClass(cfg, db_connection, sendWSMessage)
 
-# atexit.register(exit_handler)
+atexit.register(exit_handler)
 ##############################################################################
 
 async def websocket_handler(websocket, path, shared_data_obj=None):
@@ -137,6 +139,11 @@ async def scales_reader(shared_data_obj, config=None):
 	shared_data_obj.setScalesState(True)
 	await sendWSMessage('scales', '{connected: true, '
 	                              'message: Подключено к порту ' + str(scales_port) + '}')
+
+	try:
+		reg = config.scales.regexp
+	except:
+		reg = '.*(ST).*?-*0*(\d+\.\d+)'
 	new_weight = True  # признак того, что груз на весах сменили
 	ttt = time.time()
 	while True:
@@ -149,17 +156,26 @@ async def scales_reader(shared_data_obj, config=None):
 
 		# if (time.time() - ttt) > 10:
 		# 	ttt = time.time()
-		# 	cw = abs(round(random.random() * 10  - 1, 3))
-		# 	data = '__ST___________' + str(cw) + 'kg'
+		# 	cw = abs(round(random.random() * 20  - 1, 2))
+		# 	b = str(cw).rjust(5, ' ').encode()
+		# 	data = b'ST,NT,\x05\xbb,   ' + b + b' kg\r\n'
 		# 	print(data, len(data))
 		# 	await asyncio.sleep(0.01)
 		# else:
-		# 	await asyncio.sleep(0.01)
-		# 	data = '__ST___________' + '0.000' + 'kg'
+		# 	await asyncio.sleep(1)
+		# 	data = b'ST,NT,\x05\xbb,   0.000 kg\r\n'
 
 		if len(data) == 22:
 			try:
-				match = re.findall(r'..(..).*-*0*([0-9]+\.\d+)', str(data))
+				# match = re.findall(r''+config.scales.regexp+'', str(data))
+				match = re.findall(reg, str(data))
+				if not match:
+					print('NOT MUTCH!', str(data))
+					LOGGER.info(f'NOT MUTCH! {data}')
+					await asyncio.sleep(0.1)
+					winsound.Beep(200, 900)
+					continue
+
 				curr_weight = round(float(match[0][1]), int(config.scales.precision))
 				if curr_weight == 0 and not new_weight:
 					await sendWSMessage('weight', 0)
@@ -177,10 +193,11 @@ async def scales_reader(shared_data_obj, config=None):
 					else:
 						# глухой и долгий бууууууп
 						# winsound.Beep(200, 900)
-						LOGGER.error('Вес слишком мал: ' + str(curr_weight))
+						# LOGGER.error('Вес слишком мал: ' + str(curr_weight))
+						print(Fore.RED+'Вес слишком мал: ' + str(curr_weight)+Style.RESET_ALL)
 						new_weight = True
 						curr_weight = 0
-						await asyncio.sleep(0.05)
+						await asyncio.sleep(0.1)
 						continue
 						# await sendWSMessage('weight', curr_weight)
 						# await sendWSMessage('messages', {'message': 'Вес слишком мал: ' + str(curr_weight)})
