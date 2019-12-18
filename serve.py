@@ -171,9 +171,9 @@ async def scales_reader(shared_data_obj, config=None):
 				match = re.findall(reg, str(data))
 				if not match:
 					print('NOT MUTCH!', str(data))
-					LOGGER.info(f'NOT MUTCH! {data}')
-					await asyncio.sleep(0.1)
-					winsound.Beep(200, 900)
+					# LOGGER.info(f'NOT MUTCH! {data}')
+					await asyncio.sleep(0.01)
+					# winsound.Beep(200, 900)
 					continue
 
 				curr_weight = round(float(match[0][1]), int(config.scales.precision))
