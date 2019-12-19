@@ -51,10 +51,27 @@ class Printer():
 				except:
 					pass
 				LOGGER.debug('RUN SQL: ' + sql)
+				await self.smf('spr', 'template')
 				return web.Response(text=json.dumps({'status': 'ok'}))
 			except Exception as e:
 				self.conn.rollback()
 				LOGGER.error(str(e) + '; SQL = ' + sql)
+				return web.Response(text=json.dumps({'status': 'error'}))
+
+	async def put(self, request):
+		action = request.match_info.get('action', None)
+		subaction = request.match_info.get('subaction', None)
+
+		if action == 'templates' and subaction:
+			params = json.loads(await request.text())
+			sql = f'update "TEMPLATES" set "name"=\'{params["name"]}\' where "id"={subaction}'
+			try:
+				self.cursor.execute(sql)
+				self.conn.commit()
+				await self.smf('spr', 'template')
+				return web.Response(text=json.dumps({'status': 'ok'}))
+			except Exception as ex:
+				LOGGER.error('Upload template error: ' + str(ex) + '. SQL=' + sql)
 				return web.Response(text=json.dumps({'status': 'error'}))
 
 	async def post(self, request):
@@ -69,6 +86,7 @@ class Printer():
 				self.conn.commit()
 				self.cursor.execute('select GEN_ID("GEN_public_templates_ID",0) from RDB$DATABASE;')
 				res = fetchDataOne(self.cursor)
+				await self.smf('spr', 'template')
 				return web.Response(text=json.dumps({'new_id': res['GEN_ID']}))
 			except Exception as ex:
 				LOGGER.error('Upload template error: ' + str(ex) + '. SQL=' + sql)
@@ -79,6 +97,7 @@ class Printer():
 			tid = data['id'] + ('_total' if data['total']=='true' else '')
 			with open(f'./printer/templates/template_{tid}.xlsx', 'wb') as f:
 				f.write(data['file'].file.read())
+			await self.smf('spr', 'tempate')
 			return web.Response(text=json.dumps({'status': 'ok'}))
 
 		if (action=='label' or action == 'total') and subaction==None:

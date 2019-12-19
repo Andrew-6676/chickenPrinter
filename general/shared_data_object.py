@@ -34,14 +34,12 @@ class DataClass(object):
 		self.reporter = Reporter(db_connection, cfg)
 		self.sendWSMessage = sendWSMessage
 
-	def hello(self):
-		return 'hello'
-
 	def getExcel(self):
 		return self.excel
 
 	def setWsClient(self, ws):
 		self.ws = ws
+
 	def getWsClient(self):
 		return self.ws
 
@@ -59,7 +57,6 @@ class DataClass(object):
 			self.printData = None
 		else:
 			self.printData = data
-
 
 	def setTareMode(self, mode):
 		LOGGER.debug(f'Set tare mode = {mode}')

@@ -8,11 +8,12 @@ from general.fetchData import fetchDataOne, fetchDataAll
 LOGGER = logging.getLogger('app')
 
 class User:
-	def __init__(self, db_connection, q=None, config=None):
+	def __init__(self, db_connection, q=None, config=None, smf=None):
 		self.qqq=q
 		self.config = config
 		self.conn = db_connection
 		self.cursor = db_connection.cursor()
+		self.smf = smf
 
 	async def get(self, request):
 		id = request.match_info.get('id', None)
@@ -35,11 +36,12 @@ class User:
 			self.cursor.execute(sql)
 			self.conn.commit()
 			LOGGER.debug('RUN SQL: ' + sql)
+			await self.smf('spr', 'user')
 			return web.Response(text=json.dumps({'status': 'ok'}))
 		except Exception as e:
 			self.conn.rollback()
 			LOGGER.error(str(e) + '; SQL = ' + sql)
-			return web.Response(text=json.dumps({'status': 'error'}))
+			return web.Response(text=json.dumps({'status': 'error', 'message':str(e)}))
 
 	async def put(self, request):
 		user = json.loads(await request.text())
@@ -50,11 +52,12 @@ class User:
 			self.cursor.execute(sql)
 			self.conn.commit()
 			LOGGER.debug('RUN SQL: ' + sql)
+			await self.smf('spr', 'user')
 			return web.Response(text=json.dumps({'status': 'ok'}))
 		except Exception as e:
 			self.conn.rollback()
 			LOGGER.error(str(e) + '; SQL = ' + sql)
-			return web.Response(text=json.dumps({'status': 'error'}))
+			return web.Response(text=json.dumps({'status': 'error', 'message':str(e)}))
 
 	async def delete(self, request):
 		id = request.match_info.get('id', None)
@@ -64,6 +67,7 @@ class User:
 			self.cursor.execute(sql)
 			self.conn.commit()
 			LOGGER.debug('RUN SQL: ' + sql)
+			await self.smf('spr', 'user')
 			return web.Response(text=json.dumps({'status': 'ok'}))
 		except Exception as e:
 			self.conn.rollback()

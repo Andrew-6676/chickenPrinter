@@ -154,7 +154,7 @@ async def scales_reader(shared_data_obj, config=None):
 
 		# КУСОК КОДА ДЛЯ ТЕСТИРОВАНИЯ ПОКА НЕТ ВЕСОВ
 
-		# if (time.time() - ttt) > 10:
+		# if (time.time() - ttt) > 5:
 		# 	ttt = time.time()
 		# 	cw = abs(round(random.random() * 20  - 1, int(config.scales.precision)))
 		# 	b = str(cw).rjust(6, ' ').encode()
@@ -216,7 +216,7 @@ async def scales_reader(shared_data_obj, config=None):
 async def http_server(db_connection, shared_obj, config):
 	app = web.Application()
 
-	user = User(db_connection, shared_obj, config)
+	user = User(db_connection, shared_obj, config, sendWSMessage)
 	app.add_routes([
 		web.get('/api/users', user.get),
 		web.get('/api/users/{id}', user.get),
@@ -225,7 +225,7 @@ async def http_server(db_connection, shared_obj, config):
 		web.delete('/api/users/{id}', user.delete),
 	])
 
-	production = Production(db_connection, shared_obj, config)
+	production = Production(db_connection, shared_obj, config, sendWSMessage)
 	app.add_routes([
 		web.post('/api/production', production.post),
 		web.get('/api/production', production.get),
@@ -240,6 +240,7 @@ async def http_server(db_connection, shared_obj, config):
 		web.post('/api/print/{action}', printer.post),
 		web.get('/api/print/{action}/{subaction}', printer.get),
 		web.post('/api/print/{action}/{subaction}', printer.post),
+		web.put('/api/print/{action}/{subaction}', printer.put),
 		web.delete('/api/print/{action}/{subaction}', printer.delete)
 	])
 
