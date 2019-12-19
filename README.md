@@ -3,6 +3,8 @@
 
 **В настройках принтера необходимо добавить нужные размеры этикетки**
 
+**Режим передачи веса желательно установить в "передача после успокоения" (в крайнем случае "непрерывный режим")**
+
 -------
 # Необходимо установить:
 - [FireBird 2.5](https://firebirdsql.org/en/firebird-2-5/) (может быть установлен на любом компе в сети, там же должна лежать и БД)
@@ -44,6 +46,8 @@
 База данных - [DATABASE.ZIP](https://github.com/Andrew-6676/chickenPrinter/files/3938129/DATABASE.ZIP)
 
 Шаблоны - [templates.zip](https://github.com/Andrew-6676/chickenPrinter/files/3938130/templates.zip)
+
+Инструкция к весам - [CI-5010A](https://github.com/Andrew-6676/chickenPrinter/files/3982060/CI-5010A.pdf)
 
 -------
 
