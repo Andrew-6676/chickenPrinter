@@ -45,6 +45,8 @@
 
 Шаблоны - [templates.zip](https://github.com/Andrew-6676/chickenPrinter/files/3938130/templates.zip)
 
+Инструкция к весам - [CI-5010A](https://github.com/Andrew-6676/chickenPrinter/files/3982060/CI-5010A.pdf)
+
 -------
 
 Самый компактный из найденных шрифтов - [compact](http://allfont.ru/download/compact/)
