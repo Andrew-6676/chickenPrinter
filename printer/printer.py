@@ -43,14 +43,15 @@ async def genereate_file_to_print(template_file, data):
 				sheet[get_column_letter(i + 1) + str(k + 1)] = newCell
 
 				# ищем штрихкод
-				bar_res = re.findall(r'\{\{(.+)=(ean13|code128),?(\d+)?\}\}', newCell)
+				bar_res = re.findall(r'\{\{(.+)=(ean13|code128),?(\d+)?,?([\d.]+)?\}\}', newCell)
 				if bar_res:
 					sheet[get_column_letter(i + 1) + str(k + 1)] = ''
-					code_data, code_type, rotate = bar_res[0]
+					code_data, code_type, rotate, resize = bar_res[0]
 					code_data = data[code_data]
 					rotate = rotate if rotate else 0
+					resize = resize if resize else 1
 					# print('-->', get_column_letter(i + 1) + str(k + 1), code_type, code_data, rotate)
-					insertBarCode(sheet, get_column_letter(i + 1) + str(k + 1), code_type, code_data, int(rotate))
+					insertBarCode(sheet, get_column_letter(i + 1) + str(k + 1), code_type, code_data, int(rotate), float(resize))
 
 	tmp_file = 'print_total.xlsx' if re.match(r'.*_total.*', template_file) else 'print.xlsx'
 	wb.save(current_work_dir + '/tmp/' + tmp_file)
