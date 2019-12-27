@@ -11,7 +11,7 @@ from barcode.writer import ImageWriter
 def resize_bar(file, koeff):
 	img = PILImage.open(file)
 	size = int(round(img.width * koeff, 0)), int(round(img.height * koeff, 0))
-	img = img.resize(size, PILImage.ANTIALIAS)
+	img = img.resize(size)
 	# image.convert('1').save('barcode.png')
 	img.save(file)
 	# return img
