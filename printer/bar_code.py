@@ -8,14 +8,6 @@ import treepoem
 from barcode.writer import ImageWriter
 
 # ----------------------------------------------------------------------------------------------- #
-def resize_bar(file, koeff):
-	img = PILImage.open(file)
-	size = int(round(img.width * koeff, 0)), int(round(img.height * koeff, 0))
-	img = img.resize(size, PILImage.ANTIALIAS)
-	# image.convert('1').save('barcode.png')
-	img.save(file)
-	# return img
-# ----------------------------------------------------------------------------------------------- #
 def generateBarCode_simple(type, data, rotate=0):
 	fp = BytesIO()
 	writer_options = {
@@ -65,25 +57,28 @@ def generateBarCode_tree(type, data):
 def generateBarCode_node(type, data, rotate=0, resize=1):
 	# rotate = '--rotate=' + {0: 'N', 90: 'R', 270: 'L', 180: 'I'}[rotate]
 	if type=='ean13':
-		command = f'bwip-js --bcid={type} --text={data} --includetext=true  --height=12 --width=45 --textyoffset=-5 code1.png'
+		command = f'bwip-js --bcid={type} --text={data} --includetext=true  --scaleY=1 --scale=2 --height=10 --width=25 --textyoffset=-5 code1.png'
 		os.system(command)
+		image = PILImage.open('code1.png')
+		im2 = image.rotate(-rotate, expand=True)
+		im2.save('code1.png')
 		# image = PILImage.open('code1.png')
-		resize_bar('code1.png', resize)
 		return PILImage.open('code1.png')
 	if type == 'code128':
-		command = f'bwip-js --bcid={type} --text={data} --includetext=true --textgaps=1 --includetext=true  --height=10 --width=60 code2.png'
+		command = f'bwip-js --bcid={type} --text={data} --includetext=true --textgaps=1 --includetext=true  --scaleY=1 --scale=2 --height=10 --width=25 code2.png'
 		os.system(command)
 		image = PILImage.open('code2.png')
 		im2 = image.rotate(-rotate, expand=True)
 		im2.save('code2.png')
 		# im3 = PILImage.open('code2.png')
-		resize_bar('code2.png', resize)
 		return PILImage.open('code2.png')
 
 # ----------------------------------------------------------------------------------------------- #
 def insertBarCode(sheet, anchor, code_type, code_data, rotate=0, resize=1):
 	im = generateBarCode_node(code_type, code_data, rotate, resize)
 	img = openpyxl.drawing.image.Image(im)
+	img.width *= resize
+	img.height *= resize
 	img.anchor = anchor
 	sheet.add_image(img)
 
