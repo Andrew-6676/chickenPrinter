@@ -2,7 +2,6 @@ import json
 import random
 import time
 import traceback
-import winsound
 
 import fdb
 from aiohttp import web
@@ -30,8 +29,6 @@ colorama.init()
 
 logging.config.fileConfig('logger.conf')
 LOGGER = logging.getLogger('app')
-# LOGGER.handlers[0].doRollover()
-
 
 def exit_handler():
 	EXCEL.Quit()
